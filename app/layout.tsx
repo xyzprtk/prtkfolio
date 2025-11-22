@@ -43,6 +43,13 @@ export default function RootLayout({
           <NavbarComponent />
           {children}
         </Providers>
+        <script
+    src="https://cdn.databuddy.cc/databuddy.js"
+    data-client-id="-WfdBGCX0UChXhO5Z-tqm"
+    data-enable-batching="true"
+    crossOrigin="anonymous"
+    async
+  ></script>
       </body>
     </html>
   );
