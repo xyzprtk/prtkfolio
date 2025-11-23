@@ -30,7 +30,7 @@ export default function NavbarComponent() {
       link: "/",
     },
     {
-      name: "Proof of Work",
+      name: "Things I've Built",
       link: "/work",
     },
     {

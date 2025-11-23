@@ -1,9 +1,8 @@
-// components/ProjectCard.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { IconBrandGithub, IconExternalLink } from "@tabler/icons-react";
+import { IconArrowRight, IconBrandGithubFilled, IconExternalLink } from "@tabler/icons-react";
 import { Project } from "@/data/projects";
 import { Button } from "./ui/button";
 
@@ -49,15 +48,15 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-2">
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center justify-between">
             {project.githubLink && (
               <a
                 href={project.githubLink}
                 target="_blank"
                 rel="noreferrer"
-                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors"
+                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors flex justify-between items-center gap-1"
               >
-                <IconBrandGithub size={20} />
+                <IconBrandGithubFilled size={20} /> Github
               </a>
             )}
             {project.liveLink && (
@@ -65,16 +64,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 href={project.liveLink}
                 target="_blank"
                 rel="noreferrer"
-                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors"
+                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors flex justify-between items-center gap-1"
               >
-                <IconExternalLink size={20} />
+                <IconExternalLink size={20} /> Live Link
               </a>
             )}
           </div>
 
           <Link href={`/work/${project.slug}`}>
-            <Button variant="outline" size="sm" className="rounded-lg">
-              Read More
+            <Button variant="outline" size="sm" className="rounded-lg cursor-pointer">
+              <IconArrowRight size={20} />
             </Button>
           </Link>
         </div>

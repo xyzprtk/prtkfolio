@@ -17,7 +17,7 @@ export default function WorkPage() {
       <main className="flex min-h-screen w-full max-w-5xl flex-col gap-10 px-6 py-10 pt-32 bg-background/30">
         <section className={trocchi.className}>
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl m-6">
-            Proof of Work
+            Things I've Built
           </h1>
           <p className="mt-6 text-lg text-muted-foreground px-6">
             I've worked on a variety of projects, from small side projects to large scale applications.

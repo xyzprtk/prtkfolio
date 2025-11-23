@@ -2,6 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { Trocchi } from 'next/font/google'
+
+const trocchi = Trocchi({
+  variable: "--font-trocchi",
+  subsets: ["latin"],
+  weight: ["400"],
+});
 
 interface ExperienceItem {
   company: string;
@@ -26,6 +33,7 @@ export default function ExperienceContent() {
 
   return (
     <div className="space-y-6 dark:text-white/70 text-black/70 pb-4">
+      <div className={`${trocchi.className} text-xl font-bold m-4`}>Proffessional Experience</div>
       {experiences.map((exp) => (
         <div key={exp.company} className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">

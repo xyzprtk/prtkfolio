@@ -10,7 +10,7 @@ export interface BlogPost {
   date: string;
   description: string;
   tags: string[];
-  content: string; // The raw MDX content
+  content: string;
   readingTime?: string;
 }
 

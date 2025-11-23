@@ -1,17 +1,19 @@
+// app/blog/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllBlogs, getBlogBySlug } from "@/lib/blog";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { IconArrowLeft, IconCalendar, IconClock } from "@tabler/icons-react";
+import { cache } from "react";
+import type { Metadata } from "next";
 
-// Generate paths for static export
-export async function generateStaticParams() {
-  const posts = getAllBlogs();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
-}
+// 1. Optimize Data Fetching
+// This ensures we only read the file system once per request,
+// even though we call it in both generateMetadata and the component.
+const getPost = cache(async (slug: string) => {
+  return getBlogBySlug(slug);
+});
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -19,9 +21,48 @@ interface BlogPostPageProps {
   }>;
 }
 
+// 2. The Metadata Generator
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPost(slug);
+
+  if (!post) {
+    return {
+      title: "Post Not Found",
+    };
+  }
+
+  return {
+    title: post.title, // This gets inserted into the %s in layout.tsx
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      publishedTime: post.date,
+      authors: ["Pratheek Nistala"],
+      tags: post.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+    },
+  };
+}
+
+// 3. Static Params Generation
+export async function generateStaticParams() {
+  const posts = getAllBlogs();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+// 4. The Page Content
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogBySlug(slug);
+  const post = await getPost(slug);
 
   if (!post) {
     notFound();
