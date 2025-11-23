@@ -26,8 +26,12 @@ export default function NavbarComponent() {
   const pathname = usePathname();
   const navItems = [
     {
-      name: "Portfolio",
+      name: "Home",
       link: "/",
+    },
+    {
+      name: "Proof of Work",
+      link: "/work",
     },
     {
       name: "Blog",

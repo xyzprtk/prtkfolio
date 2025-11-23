@@ -15,19 +15,23 @@ export default function GridPatternBackground({
   gridType = "dots",
   gridSize = 20,
   opacity = 0.2,
-  color = "currentColor",
+  color,
   animate = false,
   className,
   ...props
 }: GridPatternBackgroundProps) {
   const patternId = React.useId();
+  
+  // Use theme-aware colors if no color is provided
+  // Use CSS variable directly (these are hex values in globals.css)
+  const gridColor = color || "var(--foreground)";
 
   return (
     <div
       className={cn("relative h-full w-full overflow-hidden", className)}
       {...props}
     >
-      <svg className="absolute inset-0 h-full w-full">
+      <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
         <defs>
           <pattern
             id={patternId}
@@ -54,14 +58,14 @@ export default function GridPatternBackground({
                 cx={gridSize / 2}
                 cy={gridSize / 2}
                 r={1}
-                fill={color}
+                fill={gridColor}
                 style={{ opacity }}
               />
             ) : gridType === "lines" ? (
               <path
                 d={`M ${gridSize} 0 L 0 0 L 0 ${gridSize}`}
                 fill="none"
-                stroke={color}
+                stroke={gridColor}
                 strokeWidth="0.5"
                 style={{ opacity }}
               />
@@ -71,7 +75,7 @@ export default function GridPatternBackground({
                 y={gridSize / 4}
                 width={gridSize / 2}
                 height={gridSize / 2}
-                fill={color}
+                fill={gridColor}
                 style={{ opacity }}
               />
             ) : gridType === "crosshatch" ? (
@@ -79,14 +83,14 @@ export default function GridPatternBackground({
                 <path
                   d={`M ${gridSize} 0 L 0 ${gridSize}`}
                   fill="none"
-                  stroke={color}
+                  stroke={gridColor}
                   strokeWidth="0.5"
                   style={{ opacity }}
                 />
                 <path
                   d={`M 0 0 L ${gridSize} ${gridSize}`}
                   fill="none"
-                  stroke={color}
+                  stroke={gridColor}
                   strokeWidth="0.5"
                   style={{ opacity }}
                 />
@@ -95,7 +99,7 @@ export default function GridPatternBackground({
               // diamonds
               <path
                 d={`M ${gridSize / 2} ${gridSize / 4} L ${(gridSize * 3) / 4} ${gridSize / 2} L ${gridSize / 2} ${(gridSize * 3) / 4} L ${gridSize / 4} ${gridSize / 2} Z`}
-                fill={color}
+                fill={gridColor}
                 style={{ opacity }}
               />
             )}

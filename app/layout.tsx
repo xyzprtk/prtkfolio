@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Trocchi } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import NavbarComponent from "@/components/NavBar";
+import GridPatternBackground from "@/components/ui/grid-pattern-background";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,11 +38,20 @@ export default function RootLayout({
       style={{ colorScheme: "dark" }}
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${trocchi.variable} ${geistMono.variable} antialiased relative`}
       >
+        <GridPatternBackground
+          className="pointer-events-none fixed inset-0 z-0"
+          gridType="lines"
+          gridSize={16}
+          opacity={0.1}
+          animate={false}
+        />
         <Providers>
-          <NavbarComponent />
-          {children}
+          <div className="relative z-10">
+            <NavbarComponent />
+            {children}
+          </div>
         </Providers>
         <script
     src="https://cdn.databuddy.cc/databuddy.js"

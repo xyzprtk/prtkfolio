@@ -1,4 +1,5 @@
 import { Pixelify_Sans , Trocchi} from "next/font/google";
+import Link from "next/link";
 
 const pixelifySans = Pixelify_Sans({
   subsets: ["latin"],
@@ -13,9 +14,11 @@ const trocchi = Trocchi({
 function LogoText() {
   return (
     <div className={trocchi.className}>
-      <span className="text-xl font-black tracking-tight text-foreground">
-        prtk
-      </span>
+      <Link href="/">
+        <span className="text-xl font-black tracking-tight text-foreground cursor-pointer hover:underline">
+          prtk
+        </span>
+      </Link>
     </div>
   );
 }

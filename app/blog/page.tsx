@@ -1,15 +1,18 @@
-import GridPatternBackground from '@/components/ui/grid-pattern-background'
-export default function Example() {
+"use client";
+
+export default function BlogPage() {
   return (
-      <div className="relative h-[200px]">
-        <GridPatternBackground
-          gridType="lines" // choose from 'dots', 'lines', 'squares', 'crosshatch', 'diamonds'
-          gridSize={24} // Adjust grid size
-          opacity={0.3} // Adjust opacity
-          color="#6d28d9" // Use a hex color
-          animate={false} // Enable animation
-        />
-        <div className="absolute inset-0">Your content here</div>
-      </div>
+    <div className="relative min-h-screen flex justify-center">
+      <main className="flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-10 pt-32 bg-background/30">
+        <section className="mt-40">
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Blog
+          </h1>
+          <p className="mt-6 text-lg text-muted-foreground">
+            Coming soon...
+          </p>
+        </section>
+      </main>
+    </div>
   );
 }

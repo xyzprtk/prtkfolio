@@ -1,55 +1,44 @@
-import Image from "next/image";
-import { ContainerTextFlip } from "./ui/container-text-flip";
 import ExperienceContent from "./ExperienceContent";
+import ProfileCard from "./ProfileCard";
+import BannerImage from "./BannerImage";
+import { Trocchi } from "next/font/google";
+import SectionBorder from "./SectionBorder";
+
+const trocchi = Trocchi({
+    variable: "--font-trocchi",
+    subsets: ["latin"],
+    weight: ["400"],
+});
 
 export default function HeroSection() {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-10 px-6 py-10 pt-32">
-        <section className="flex flex-1 items-center justify-center">
-          <div className="w-full rounded-[32px] border border-border/60 bg-card/70 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.7)] backdrop-blur-xl">
-            <div className="flex flex-col gap-8">
-              <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                <div className="relative h-32 w-32">
-                  <Image
-                    src="/profile.png"
-                    alt="Profile avatar"
-                    fill
-                    className="rounded-full object-cover object-top"
-                    priority
-                  />
-                  <Image
-                    src="/india.png"
-                    alt="India flag"
-                    width={48}
-                    height={32}
-                    className="absolute left-0 top-0 -translate-y-1 -translate-x-1 rounded-sm border-none ring ring-offset-2 ring-offset-transparent"
-                  />
+    return (
+        <main className="flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-10 bg-background/30">
+            <section className={trocchi.className}>
+                <BannerImage />
+                <ProfileCard />
+                <SectionBorder className="mt-3 mb-6" />
+
+                <div className="ml-4 mt-4 mr-4 text-left text-md sm:text-base text-muted-foreground">
+
+
+                    <p>
+                        I turn messy datasets into intelligent systems. My focus is on <a className="dark:text-white/80 text-black/80 font-bold">Analytics, Machine Learning, and Credit Risk Modeling</a>, backed by a strong engineering foundation in <a className="dark:text-white/80 text-black/80 font-bold">Linux, Backend, and Full-Stack Development</a> that lets me take models from exploration all the way through to production.
+                        <br />
+                        <br />
+                        Currently diving into <a>
+                            </a><a className="dark:text-white/80 text-black/80 font-bold">LLM Engineering, RAG Systems, and MLOps</a> because I want to build solutions that leverage the latest in AI.
+                        <br />
+                        <br />
+                        When I'm not building, I'm writing. I share what I learn through <a href="/blog" className="dark:text-white/80 text-black/80 font-bold">blogs</a> on code, technology, AI, Linux, and everything in between.
+
+                    </p>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                      Pratheek Nistala
-                    </h1>
-                    <span>
-                    <Image src="/tick.svg" alt="Badge" width={24} height={24} />
-                    </span>
-                  </div>
-                  <ContainerTextFlip
-                    words={["Data Engineer","MLOps Engineer","ML Engineer","Data Analyst","Linux"]}
-                    interval={3000}
-                    animationDuration={700}
-                    className="text-sm text-muted-foreground"
-                    textClassName="text-sm text-muted-foreground"
-                  />
+                <SectionBorder className="mt-6" />
+                <div className="mt-6">
+                    <ExperienceContent />
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Non nobis pariatur cum commodi dolore debitis in numquam rem nesciunt sunt sapiente, tempora aut ab ipsum iste unde mollitia id voluptate saepe adipisci similique laudantium explicabo? Provident reprehenderit autem sint atque explicabo quasi corporis fugiat eius sed illum, omnis nihil architecto, maxime eum laudantium magni quo reiciendis officia. Ratione deleniti facilis commodi, facere numquam cum necessitatibus animi. Voluptate reiciendis error quibusdam non quis itaque, accusantium architecto labore atque voluptas nesciunt ipsam, ipsum quos. Necessitatibus exercitationem officia corrupti dolorum, ipsa nihil vel possimus beatae officiis blanditiis voluptas corporis ad asperiores reiciendis, eos harum pariatur. Iure quibusdam doloribus quo, vel et harum placeat architecto, unde, dignissimos nulla sunt consectetur minima vero quas! Incidunt quo ex eveniet reiciendis corrupti suscipit nemo distinctio ducimus pariatur ipsum inventore accusantium rem maiores facere cumque nihil doloremque, totam architecto dicta dolore impedit adipisci mollitia unde. Ipsum, exercitationem velit vel maxime reiciendis aspernatur dolore repudiandae, tempore eius molestiae voluptatem! Culpa officia ipsum nam quis consequuntur aperiam earum cupiditate libero deserunt. Error recusandae veritatis animi atque autem eos ut voluptatibus mollitia nostrum ipsam alias fugit accusantium adipisci, earum aliquam id eveniet hic excepturi assumenda? Velit dolores fugiat temporibus itaque repellat facere deleniti voluptatum consequuntur? Doloribus molestiae tenetur voluptate odit libero vitae reprehenderit quae quam doloremque recusandae rerum placeat quasi ut magni, non beatae consequatur earum praesentium voluptatem soluta provident dolor nihil natus iusto. Dicta quod voluptates voluptatum dolor asperiores quo facere ducimus autem mollitia, magni, rem quisquam numquam! Dolorum voluptatem distinctio placeat voluptatum veniam consequatur quisquam magni tempora saepe sapiente, ad at unde cumque quasi sequi earum et, recusandae, nobis ab. Fugit omnis praesentium aperiam suscipit ex itaque pariatur sapiente, necessitatibus quos maxime nihil numquam dolore cum eos recusandae optio tempora autem id ratione illum maiores. Repellat quaerat ea similique dolore iure inventore illo minus dolorem pariatur beatae libero explicabo aspernatur, assumenda dicta eaque reiciendis, nam, magni mollitia? Consectetur in nulla autem quaerat minus assumenda accusantium placeat! Sint sapiente voluptatem fuga iusto corporis eveniet. Reiciendis similique et voluptatibus! Quaerat accusamus reiciendis, ab dicta cum veniam minima rerum debitis fuga vel sequi! Qui repellendus eos sed enim, cumque possimus vero laborum, recusandae ipsam, deserunt suscipit labore quam ratione commodi assumenda voluptatum quis ipsum exercitationem atque accusamus repellat? Quia veritatis consectetur accusantium dolorum neque. Velit dolores sed sunt dolore nam rem vero fugiat obcaecati, quos omnis reprehenderit laborum iusto unde praesentium sequi, ab officiis est dignissimos enim nihil ipsa. Maxime, quasi illum ducimus quisquam id dolor officiis, reiciendis, nobis officia blanditiis nulla numquam! Minus voluptatem quisquam earum cumque commodi vel ex saepe, provident rerum ea, impedit, quibusdam porro autem ipsam! Sapiente consequuntur dignissimos soluta facilis similique pariatur quia dicta unde! Optio architecto a corporis eius repudiandae voluptatum atque commodi assumenda obcaecati! Doloremque quisquam quibusdam dicta. Odio adipisci nesciunt sint eius culpa error ratione porro blanditiis modi debitis omnis laudantium eum sequi et velit ab, dignissimos ea earum distinctio in animi. Quam maxime quo, dolor quas adipisci eligendi laudantium facere et officiis magni quod assumenda consequuntur dolorem? Perferendis ab similique molestias dolores maxime odit dolorem eveniet provident libero est distinctio voluptatibus harum assumenda suscipit adipisci beatae reprehenderit sit, officiis numquam sint velit reiciendis vitae nam in. Voluptatum, velit itaque. Fugit a fuga sunt magni deleniti ipsam magnam. Earum error optio, animi, molestiae laudantium officiis illum labore iusto expedita similique provident omnis assumenda autem blanditiis obcaecati deleniti quis aliquam! Obcaecati, numquam.
-              </p>
-              <ExperienceContent />
-      </main>
-  );
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero veniam voluptatum dolores beatae quis deleniti dolorum expedita eligendi corporis similique repellendus optio soluta quae, ullam recusandae quam, maxime in delectus unde. Eos, voluptate tempore. Commodi magnam nostrum obcaecati dolorem nam, quae nihil earum explicabo ab ullam optio corrupti tenetur, quisquam alias, a voluptas quasi debitis aliquid similique quam. Aut a quae itaque quia vitae, numquam perferendis. Dolorum et minima maiores! Doloribus quo ut reiciendis officia eum? Quibusdam odio cum eveniet ex aut earum necessitatibus voluptatum ut sit eligendi rem, repellendus molestiae provident deleniti a vero laborum quam. Earum deleniti exercitationem quis ipsa! Officia fugit, aperiam dolores molestiae non ullam voluptate nobis consequatur sequi autem magnam laudantium molestias tempore velit, architecto placeat officiis nemo culpa qui totam. Eligendi dolores officia labore magnam sunt molestias nam autem quidem minima nobis similique excepturi culpa, magni blanditiis, veniam iste obcaecati sit facere id fugiat modi pariatur tempora facilis totam. Aliquid, blanditiis vel quod officia fuga optio voluptates ratione est. Animi non, sapiente dignissimos laboriosam quas quos impedit obcaecati tempore ratione facere. Illo, reprehenderit nesciunt alias consectetur commodi, sapiente illum ducimus delectus aliquam laborum quia praesentium assumenda mollitia. Delectus accusamus sit cumque cum dolor inventore eaque eum, earum ipsa dolorem quos expedita iure maiores dicta voluptates, distinctio corporis quis numquam facere dolore. Ad expedita minus itaque error accusantium et laudantium consectetur perspiciatis possimus facilis obcaecati culpa alias sapiente laboriosam ipsum placeat, eligendi beatae assumenda cupiditate eum ea doloribus incidunt. Ratione, quos! Veniam optio veritatis, atque recusandae omnis alias quam quo, cum ipsum hic provident nobis odit laborum minima nam eius exercitationem? Nisi porro ab voluptatem accusantium, dolores sunt, numquam quos, dolore facilis suscipit maxime? In reiciendis incidunt quisquam, repudiandae minus odit distinctio iusto illum, molestiae quasi tempore ut error, nulla autem. Voluptates rem, similique architecto consequuntur earum aspernatur quam deleniti vel totam. Delectus, quos eaque! Porro odio asperiores itaque soluta est! Itaque sapiente perferendis quas tenetur excepturi accusamus libero quis ut facilis? At vitae nostrum neque. Sequi eveniet quae excepturi labore totam, iste laborum quos, sed assumenda autem cum aliquam dolore architecto facere iure minus fugiat eius consequuntur veritatis soluta asperiores. Facere in aspernatur voluptas omnis alias aut veritatis porro iure. Quos eligendi cum dignissimos facere! Ratione corrupti dicta aliquid totam dolor. Molestias praesentium eos qui nihil laborum suscipit, maxime nulla! Voluptates enim id corporis veniam deserunt et qui sit magnam porro? Necessitatibus inventore quod dicta perspiciatis adipisci architecto! Eum suscipit quae at. Incidunt placeat optio odit! Aperiam voluptas necessitatibus velit dolorem amet exercitationem, facere expedita in? Ullam obcaecati ducimus molestias mollitia totam dicta repudiandae ex maxime non quam soluta ipsum omnis accusamus similique esse, aut quae saepe numquam magni illum aliquam vel minus! Numquam consequuntur at sit nisi suscipit, minus provident illo nesciunt velit sequi non a voluptatum assumenda commodi dicta eos minima, consectetur optio eius ipsam, error corporis neque? Asperiores possimus repellat obcaecati dolore! Laborum molestiae vero error est architecto numquam minima, hic placeat! Quia dolores modi explicabo rem dolore labore architecto, numquam reprehenderit, ducimus laborum nemo ipsa inventore voluptatibus maiores hic ipsam qui voluptatem aut cumque autem! Earum consectetur fugit dolorum. Qui officiis consequuntur excepturi, reprehenderit placeat voluptatibus deserunt? Vero molestias dolor, possimus iste optio animi ab praesentium alias perspiciatis ullam architecto error tenetur ducimus tempora sunt autem officiis sint, saepe fuga aut excepturi esse cumque eos. Odit expedita modi reprehenderit ad qui? Nesciunt itaque cumque voluptatem architecto esse.
+            </section>
+        </main>
+    );
 }
