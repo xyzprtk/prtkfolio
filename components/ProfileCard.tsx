@@ -1,6 +1,7 @@
 'use client';
 import { Trocchi } from "next/font/google";
-import { IconBrandGithubFilled, IconBrandLinkedin, IconBrandX, IconPaperclip, IconMapPinFilled } from "@tabler/icons-react";
+import {IconBrandLinkedin, IconBrandX, IconPaperclip, IconMapPinFilled } from "@tabler/icons-react";
+import Image from "next/image";
 
 interface ProfileHeaderProps {
   name?: string
@@ -70,7 +71,7 @@ export default function ProfileHeader({
         <div className="flex justify-start space-x-4 mt-3 sm:mt-0 px-0">
           {socialLinks.github && (
             <a
-              className="hover:opacity-80 touch-manipulation active:opacity-75"
+              className="hover:opacity-80 touch-manipulation text-black dark:text-white active:opacity-75"
               href={socialLinks.github}
               target="_blank"
               rel="noopener noreferrer"
@@ -81,7 +82,12 @@ export default function ProfileHeader({
                 userSelect: 'none'
               }}
             >
-              <IconBrandGithubFilled size={18} />
+              <Image
+              src={"/tech/GitHub.svg"}
+              alt="Github"
+              width={fontSize}
+              height={fontSize}
+              />
             </a>
           )}
           {socialLinks.twitter && (

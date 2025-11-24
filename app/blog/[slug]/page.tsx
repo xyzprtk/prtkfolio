@@ -75,7 +75,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {/* Back Button */}
         <div className="mb-8">
           <Link href="/blog">
-            <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-primary gap-2">
+            <Button variant="ghost" className="pl-0 hover:bg-transparent cursor-pointer hover:text-primary gap-2">
               <IconArrowLeft size={18} />
               Back to Blog
             </Button>
@@ -94,7 +94,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
              </span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-bold font-(family-name:--font-trocchi) leading-tight">
+          <h1 className="text-3xl sm:text-5xl text-foreground font-bold font-(family-name:--font-trocchi) leading-tight">
             {post.title}
           </h1>
           

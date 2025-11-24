@@ -16,8 +16,8 @@ const techStack = [
         path: "/tech/Python.svg",
       },
   {
-        name: "Postgres SQL",
-        path: "/tech/PostgresSQL.svg",
+        name: "SQL",
+        path: "/tech/SQL.svg",
   },
 
   {
@@ -25,8 +25,12 @@ const techStack = [
     path: "/tech/Linux.svg",
   },
   {
-    name: "JavaScript",
-    path: "/tech/JavaScript.svg",
+    name: "Git",
+    path: "/tech/Git.svg",
+  },
+  {
+    name: "Apache Spark",
+    path: "/tech/Apache Spark.svg",
   },
   {
     name: "TypeScript",
@@ -37,12 +41,12 @@ const techStack = [
     path: "/tech/Docker.svg",
   },
   {
-    name: "Kubernetes",
-    path: "/tech/Kubernetes.svg",
+    name: "Scikit-Learn",
+    path: "/tech/scikit-learn.svg",
   },
   {
-    name: "Apache Spark",
-    path: "/tech/Apache Spark.svg",
+    name: "Kubernetes",
+    path: "/tech/Kubernetes.svg",
   },
   {
     name: "Google Cloud",
@@ -51,13 +55,17 @@ const techStack = [
   {
     name: "Shell Scripting",
     path: "/tech/Bash.svg",
+  },
+  {
+    name: "Next.js",
+    path: "/tech/Next.js.svg"
   }
 ];
 
 export default function TechStack() {
   return (
-    <div className={cn("w-full py-4", trocchi.className)}>
-      <p className="text-sm text-muted-foreground mb-6 opacity-60">Tech Stack</p>
+    <div className={cn("w-full py-2", trocchi.className)}>
+      <p className="text-xl font-medium text-foreground mb-6 opacity-80 ml-6 pb-6">Tech Stack</p>
       
       <div className="flex flex-wrap gap-8 sm:gap-12 items-center">
         {techStack.map((tech) => (
@@ -66,15 +74,14 @@ export default function TechStack() {
             className="group flex flex-col items-center gap-3 transition-all duration-300 hover:-translate-y-1"
           >
             {/* Icon Container */}
-            <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12">
+            <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 ml-6 mr-6">
               <Image
                 src={tech.path}
                 alt={tech.name}
                 fill
                 className={cn(
                   "object-contain transition-all duration-300",
-                  // Default state: Muted, grayscale, slightly transparent
-                  " opacity-60 dark:invert-[0.6]", 
+                  " opacity-60", 
                   // Hover state: Full color/brightness
                   "group-hover:grayscale-0 group-hover:opacity-100 group-hover:dark:invert-0"
                 )}
@@ -82,7 +89,7 @@ export default function TechStack() {
             </div>
             
             {/* Label */}
-            <span className="text-xs font-medium text-muted-foreground/50 transition-colors duration-300 group-hover:text-foreground">
+            <span className="text-sm font-medium text-muted-foreground/50 transition-colors duration-300 group-hover:text-foreground">
               {tech.name}
             </span>
           </div>

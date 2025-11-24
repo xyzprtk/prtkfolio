@@ -5,6 +5,7 @@ import { Trocchi } from "next/font/google";
 import SectionBorder from "./SectionBorder";
 import GithubGraph from "./GithubContributions";
 import TechStack from "./TechStack";
+import ContactForm from "./ContactForm";
 
 const trocchi = Trocchi({
     variable: "--font-trocchi",
@@ -44,8 +45,12 @@ export default function HeroSection() {
                     <GithubGraph />
                 </div>
                 <SectionBorder className="mt-6" />
-            </section>
             <TechStack/>
+            <SectionBorder className="mt-6" />
+            <ContactForm />
+            <SectionBorder className="mt-6" />
+            </section>
+
         </main>
     );
 }

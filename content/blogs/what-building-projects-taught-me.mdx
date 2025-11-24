@@ -1,0 +1,104 @@
+---
+title: "I Built Two Data Projects from Scratch. Here Is What the Tutorials Didn't Tell Me."
+date: "2025-04-21"
+description: "My journey analyzing Brazilian logistics and mental health in tech. A deep dive into dirty data, schema nightmares, and the reality of feature engineering."
+tags: ["Data Science", "Learnings", "Python", "Personal"]
+---
+
+There is a specific feeling you get when you finish a coding tutorial. You feel powerful. You feel like you can take on any dataset in the world because, in the tutorial, the data was perfect. The CSVs loaded without errors. The columns were named logically. The correlations were obvious.
+
+Then I tried to build something on my own, and that feeling evaporated immediately.
+
+Over the last few weeks, I built two end-to-end projects. The first was an analysis of **Brazilian E-commerce logistics (Olist)**, and the second was a predictive model for **Mental Health in the Tech Industry**.
+
+These weren't just exercises in typing Python syntax. They were exercises in frustration, debugging, and eventually, realization. I learned more about the actual job of a data scientist in these two projects than I did in months of watching videos.
+
+Here is the detailed breakdown of what I actually learned.
+
+## 1. The "Gender" Column Nightmare (Data Cleaning is 80% of the Job)
+
+We all hear the cliché that data cleaning is 80% of the work. I thought that meant handling a few `NaN` values or dropping a duplicate row.
+
+Then I opened the **Mental Health in Tech** dataset.
+
+I wanted to see if gender played a role in how likely someone was to seek treatment. I expected the `Gender` column to contain maybe three or four distinct values. Instead, because the survey used a free-text field, I found dozens of different variations.
+
+I didn't just see "Male" and "Female." I saw:
+*   "male-ish"
+*   "something kinda male?"
+*   "Cis Male"
+*   "fluid"
+*   "Agender"
+*   "Guy (-ish) ^_^"
+
+If I had blindly tossed this into a machine learning model, the algorithm would have treated "Male" and "male" as two completely different genders. It would have seen "Guy (-ish)" as a statistical outlier rather than a human being.
+
+I had to write a custom normalization loop. I created lists of strings that mapped to standard categories—Male, Female, and Trans. I had to make judgment calls on how to group them.
+
+**The Lesson:** Algorithms are stupid. They don't understand context. If you don't get your hands dirty and read the actual rows of data, your fancy Random Forest model is going to output nonsense. You cannot automate understanding the humans behind the data.
+
+## 2. Schema Design is a Logic Puzzle
+
+For the Olist E-commerce project, I wasn't given a single "sales" spreadsheet. I was given nine distinct CSV files.
+
+*   `orders.csv`
+*   `order_items.csv`
+*   `customers.csv`
+*   `payments.csv`
+*   ...and five others.
+
+To answer a basic question like "Which state has the highest average freight cost?", I couldn't just look at one column. I had to figure out the relationship between these files.
+
+I realized that an "Order" is different from an "Order Item." One order ID can have multiple items, which means if I merged them incorrectly, I would duplicate the order data and inflate my sales numbers. I had to draw a mental map of the Primary Keys and Foreign Keys.
+
+I ended up chaining multiple Pandas merges:
+`Orders` -> `Order Items` -> `Products` -> `Sellers` -> `Geolocation`.
+
+**The Lesson:** You can be a wizard at Python, but if you don't understand data modeling—how tables relate to one another—you will calculate the wrong numbers. SQL thinking is required even when you are using Pandas.
+
+## 3. Feature Engineering is Where You Create Value
+
+In the Olist dataset, I had a column for `order_purchase_timestamp` and `order_delivered_customer_date`.
+
+On their own, these columns are boring. They are just timestamps. They don't tell a story.
+
+I decided to create a new feature called `delivery_days`. I subtracted the purchase time from the delivery time. Suddenly, I had a metric that measured efficiency.
+
+When I plotted this new metric against review scores, the correlation was undeniable. As soon as `delivery_days` went up, the 5-star reviews vanished.
+
+I did the same thing in the Mental Health project. I didn't just use the raw columns. I looked at the `work_interfere` column, which asks if mental health interferes with work. I found that this specific feature was the strongest predictor of whether someone sought help—far more than age or gender.
+
+**The Lesson:** The best data isn't in the file. It is the data you create *from* the file. Transforming raw inputs into meaningful ratios or time-spans is what separates a data analyst from a person who just knows how to make a bar chart.
+
+## 4. RFM Analysis: Business Logic over Fancy AI
+
+For the e-commerce project, I could have tried to build a complex neural network to predict sales. But I realized that business stakeholders don't usually care about black-box models. They care about actionable groups.
+
+I implemented **RFM Segmentation** (Recency, Frequency, Monetary).
+
+I broke the customers down into quartiles:
+1.  **Recency:** How long has it been since they bought something?
+2.  **Frequency:** How often do they buy?
+3.  **Monetary:** How much do they spend?
+
+By scoring every customer from 1 to 4 on these metrics, I could tag them. A "444" customer is a Champion. A "144" customer is a Loyal customer who is at risk of churning because they haven't bought anything recently.
+
+**The Lesson:** You don't always need Machine Learning. sometimes you just need arithmetic and good business sense. RFM is simple, but it provides immediate value to a marketing team in a way that a confused neural network never could.
+
+## 5. Visualization is for Debugging, Not Just Presentation
+
+I used `Plotly` for my visualizations, and I learned that interactive charts are a debugging tool.
+
+When I plotted the geolocation of sellers in Brazil, I saw a massive concentration in the southeast. But because the chart was interactive, I could zoom in on the outliers. I spotted points that didn't make sense given the state codes.
+
+This forced me to go back to my data cleaning step. The visualization revealed that some zip codes were mapped to the wrong coordinates. If I had just used a static generic chart, I would have never noticed the error.
+
+## Conclusion
+
+Building these two projects taught me that the "Science" in Data Science is mostly about rigor. It is about checking your assumptions. It is about staring at a column of mixed-up text strings and figuring out how to make them usable.
+
+I walked away with a GitHub repository full of code, but the real asset is the intuition I built. I now know that data is messy because people are messy. And my job isn't just to fit a model; it is to translate that mess into something clear.
+
+If you want to check out the code for these, they are up on my GitHub. But honestly, the code is just the syntax. The logic is where the real work happened.
+
+---

@@ -33,7 +33,7 @@ export default function ExperienceContent() {
 
   return (
     <div className="space-y-6 dark:text-white/70 text-black/70 pb-4">
-      <div className={`${trocchi.className} text-xl pl-9 text-foreground/80 font-bold dark:text-white/80`}>Proffessional Experience</div>
+      <div className={`${trocchi.className} text-xl pt-4 pb-4 pl-9 text-foreground/80 font-medium dark:text-white/80`}>Proffessional Experience</div>
       {experiences.map((exp) => (
         <div key={exp.company} className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -71,7 +71,7 @@ export default function ExperienceContent() {
                     exp.company
                   )}
                 </h3>
-                <p className="text-[10px] sm:text-sm opacity-70">
+                <p className="text-[14px] sm:text-sm opacity-70">
                   {exp.position}
                 </p>
               </div>
