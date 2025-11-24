@@ -26,7 +26,7 @@ const trochchi = Trocchi({
 export default function ProfileHeader({
   name = "Pratheek Nistala",
   age = "22",
-  title = "Data Engineer • MLOps Engineer • ML Engineer • Data Analyst • Linux",
+  title = "Data Engineer • Machine Learning",
   profileImage = "/profile.png",
   socialLinks = {
     twitter: "https://x.com/xyzprtk",
@@ -63,7 +63,7 @@ export default function ProfileHeader({
           <h1 className="font-(family-name:--font-trocchi) text-2xl sm:text-4xl tracking-[0.01em] font-medium mb-0">
             {name}
           </h1>
-          <p className="opacity-40 text-base sm:text-sm mt-3">
+          <p className="text-muted-foreground sm:text-sm mt-3">
             {age} • {title}
           </p>
         </div>

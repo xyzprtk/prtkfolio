@@ -1,6 +1,90 @@
 ---
 title: "Diving into Olist Customer Insights: A Data-Driven Exploration"
 date: "2025-03-05"
+---
+
+## Introduction
+
+This post explores a fascinating project where I analyzed the **Brazilian E-commerce Public Dataset by Olist**. The goal was to uncover valuable insights into customer behavior, segment the customer base, and provide actionable recommendations for business improvement based on data.
+
+You can find the complete code and analysis in the GitHub repository:
+[**View Code on GitHub**](https://github.com/xyzprtk/olist-customer-insights)
+
+## Project Goal and Data Overview
+
+The core objective is to analyze the Olist dataset to understand various aspects of customer behavior—demographics, purchasing patterns, popular products, and satisfaction levels. Ultimately, I used these insights to perform **RFM Segmentation** to identify distinct customer groups.
+
+The project uses the publicly available Olist dataset, which is distributed across nine CSV files:
+
+*   `olist_orders_dataset.csv`: Order details (ID, status, timestamps).
+*   `olist_order_items_dataset.csv`: Links orders to products/sellers with price and freight.
+*   `olist_customers_dataset.csv`: Customer demographics (Zip, City, State).
+*   `olist_order_payments_dataset.csv`: Payment types, installments, and values.
+*   `olist_order_reviews_dataset.csv`: Review scores and comments.
+*   `olist_products_dataset.csv`: Product definitions and dimensions.
+*   `olist_sellers_dataset.csv`: Seller locations.
+*   `olist_geolocation_dataset.csv`: Lat/Long data for geospatial analysis.
+*   `product_category_name_translation.csv`: Portuguese to English translations.
+
+## Technologies Utilized
+
+The project relies on the standard Python Data Science stack:
+
+*   **Python & Pandas:** For data manipulation and merging.
+*   **NumPy:** For numerical operations.
+*   **Matplotlib & Seaborn:** For static statistical graphics.
+*   **Plotly (Express & Graph Objects):** For interactive, drill-down visualizations.
+
+## The Analysis Workflow
+
+### 1. Setup and Loading
+
+First, I established the environment by importing the necessary libraries for processing and visualization.
+
+```python
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+import seaborn as sns 
+import plotly.express as px 
+import plotly.graph_objects as go 
+from plotly.subplots import make_subplots 
+import warnings
+warnings.filterwarnings('ignore')
+```
+### 2. Data Cleaning & Merging
+The Olist dataset is relational. To perform a holistic analysis, the nine separate CSVs needed to be merged into a single master DataFrame. This involved left-joining tables on keys like `order_id`, `product_id`, and `customer_id`.
+
+```python
+# Example of the merging strategy
+df = orders.merge(order_items, on='order_id', how='left')
+df = df.merge(payments, on='order_id', how='left')
+df = df.merge(reviews, on='order_id', how='left')
+df = df.merge(products, on='product_id', how='left')
+df = df.merge(customers, on='customer_id', how='left')
+df = df.merge(sellers, on='seller_id', how='left')
+df = df.merge(prod_cat_translation, on='product_category_name', how='left')
+```
+### 3. Feature Engineering
+Raw data often hides the best stories. I engineered several features to extract deeper insights:
+- Delivery Performance: Calculated the difference between `order_delivered_customer_date` and `order_purchase_timestamp` to analyze logistics efficiency.
+- Estimated vs. Actual: Compared the promised delivery date against the actual arrival to gauge reliability.
+- Temporal Features: Extracted Year, Month, and Day of Week to spot seasonal trends.
+- Sentiment Analysis: Converted the 1-5 star `review_score` into categorical sentiments ('Positive', 'Neutral', 'Negative').
+
+```python
+# Converting scores to sentiment categories
+def categorize_review(df):
+    if df['review_score'] == 5 or df['review_score'] == 4:
+        return 'Positive'
+    elif df['review_score'] == 3:
+        return 'Neutral'
+    else:
+        return 'Negative'
+
+df['review_type'] = df.apply(categorize_review, axis=1)---
+title: "Diving into Olist Customer Insights: A Data-Driven Exploration"
+date: "2025-03-05"
 description: "A comprehensive analysis of the Brazilian E-commerce Public Dataset using Python, Pandas, and RFM segmentation to uncover actionable customer behaviors."
 tags: ["Python", "Data Analysis", "Machine Learning", "Visualization"]
 ---
@@ -85,6 +169,77 @@ def categorize_review(df):
         return 'Negative'
 
 df['review_type'] = df.apply(categorize_review, axis=1)
+```
+
+### 4. Exploratory Data Analysis (EDA)
+The EDA phase revealed several key findings:
+- Order Status: While most orders are delivered successfully, tracking the cancellation rate is vital for operational health.
+- Payment Methods: Credit cards are the dominant payment method, but boleto (voucher) usage remains significant in Brazil.
+- Seasonality: There are distinct spikes in purchasing volume around November (Black Friday), indicating a strong seasonal component.
+- Delivery vs. Satisfaction: There is a strong correlation between longer delivery times and lower review scores. Logistics is a primary driver of customer sentiment in this dataset.
+
+```python
+# Example of EDA
+print(df['order_status'].value_counts())
+print(df['payment_type'].value_counts())
+print(df['order_purchase_timestamp'].dt.month.value_counts())
+print(df['review_type'].value_counts())
+```
+
+### 5. RFM Analysis (Customer Segmentation)
+The highlight of this project was the RFM Analysis (Recency, Frequency, Monetary). This technique segments customers based on their purchasing habits to tailor marketing strategies.
+Recency (R): Days since last purchase.
+Frequency (F): Total number of orders.
+Monetary (M): Total amount spent.
+I calculated these metrics for every unique customer:
+
+```python
+# Calculate Recency, Frequency, Monetary value
+snapshot_date = df['order_purchase_timestamp'].max() + pd.Timedelta(days=1)
+
+rfm_data = df.groupby('customer_unique_id').agg({
+    'order_purchase_timestamp': lambda x: (snapshot_date - x.max()).days, # Recency
+    'order_id': 'count', # Frequency
+    'payment_value': 'sum' # Monetary
+}).rename(columns={
+    'order_purchase_timestamp': 'Recency', 
+    'order_id': 'Frequency', 
+    'payment_value': 'MonetaryValue'
+})
+```
+
+After calculating the raw values, I assigned scores (1-4) using quartiles. A customer with a high "M" score, high "F" score, and high "R" score (recent purchase) is considered a "Champion."
+
+```python
+# Creating the RFM Segment String
+rfm_data['RFM_Segment'] = rfm_data['R_score'].astype(str) + rfm_data['F_score'].astype(str) + rfm_data['M_score'].astype(str)
+
+# Logic for Segment Naming
+def rfm_level(df):
+    if df['RFM_Score'] >= 9: return 'Champions'
+    elif df['RFM_Score'] >= 8: return 'Loyal'
+    elif df['RFM_Score'] >= 7: return 'Potential Loyalist'
+    elif df['RFM_Score'] >= 6: return 'Promising'
+    elif df['RFM_Score'] >= 5: return 'Needs Attention'
+    else: return 'Require Activation'
+
+rfm_data['RFM_Level'] = rfm_data.apply(rfm_level, axis=1)
+```
+### 6. Conclusion
+By cleaning and integrating the Olist data, performing extensive EDA, and applying RFM segmentation, we moved from raw CSV files to actionable business intelligence.
+
+### Key Takeaways:
+- **Logistics is King:** Delivery delays are the fastest way to kill customer satisfaction scores.
+- **Segmentation Works:** RFM analysis successfully identified high-value "Champions" who should be targeted with loyalty programs, versus "At Risk" customers who need re-engagement campaigns.
+- **Seasonality:** Inventory planning must account for the massive surge in Q4 orders.
+
+This data-driven approach allows for smarter marketing spend, better operational planning, and ultimately, a happier customer base.
+
+## Conclusion
+
+By cleaning and integrating the Olist data, performing extensive EDA, and applying RFM segmentation, we moved from raw CSV files to actionable business intelligence.
+
+
 ```
 
 ### 4. Exploratory Data Analysis (EDA)

@@ -23,9 +23,9 @@ export default function ExperienceContent() {
   const experiences: ExperienceItem[] = [
     {
       company: "Dun and Bradstreet",
-      position: "Data Engineering Intern ( Risk Analyst)",
+      position: "Data Science Intern ( Risk Analysis and Modeling)",
       duration: "June 2025 – Present",
-      description: "Developed and deployed cutting-edge solutions, including multi-select preferences, browser-based video recording, and API integrations like WhatsApp/email reminders. Optimized workflows with autosave features and real-time scraping, leveraging Next.js, Supabase, and Cloudflare workers.",
+      description: "As a Data Science Intern at Dun & Bradstreet, I built and validated credit risk models using logistic regression and tree based methods, and developed scorecard-style models for borrower scoring. Implemented data pipelines and feature engineering in PySpark on Databricks, ran SQL-driven analysis for data quality and exploration, and evaluated models with cross-validation and business-focused metrics. Produced actionable analytics and model artifacts to support risk assessment and decision making.",
       href: "https://www.dnb.com/",
       logoUrl: "/dnb.svg",
     },
@@ -33,7 +33,7 @@ export default function ExperienceContent() {
 
   return (
     <div className="space-y-6 dark:text-white/70 text-black/70 pb-4">
-      <div className={`${trocchi.className} text-xl font-bold m-4`}>Proffessional Experience</div>
+      <div className={`${trocchi.className} text-xl pl-9 text-foreground/80 font-bold dark:text-white/80`}>Proffessional Experience</div>
       {experiences.map((exp) => (
         <div key={exp.company} className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -82,8 +82,8 @@ export default function ExperienceContent() {
           </div>
           
           {/* Description */}
-          <div className="pl-13 sm:pl-16">
-            <p className="text-xs sm:text-sm leading-relaxed opacity-80">
+          <div className="pl-10 sm:pl-16">
+            <p className="text-md sm:text-md leading-relaxed text-muted-foreground">
               {exp.description}
             </p>
           </div>

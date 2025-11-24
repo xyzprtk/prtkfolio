@@ -26,10 +26,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       {/* Content Section */}
       <div className="p-6 flex flex-col gap-4">
         <div>
-          <h3 className="text-xl font-bold font-(family-name:--font-trocchi) mb-2">
-            {project.title}
+          <h3 className="text-xl font-bold font-(family-name:--font-trocchi) hover:underline mb-2">
+            <Link href={`/work/${project.slug}`}>{project.title}</Link>
           </h3>
-          <p className="text-sm text-muted-foreground line-clamp-3">
+          <p className="text-md text-muted-foreground line-clamp-3">
             {project.description}
           </p>
         </div>
