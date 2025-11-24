@@ -71,24 +71,36 @@ export default function ProfileHeader({
         <div className="flex justify-start space-x-4 mt-3 sm:mt-0 px-0">
           {socialLinks.github && (
             <a
-              className="hover:opacity-80 touch-manipulation text-black dark:text-white active:opacity-75"
-              href={socialLinks.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                WebkitTapHighlightColor: 'transparent',
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-            >
-              <Image
-              src={"/tech/GitHub.svg"}
-              alt="Github"
+            href={socialLinks.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 active:opacity-75"
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              userSelect: 'none'
+            }}
+          >
+            {/* Light mode icon */}
+            <img
+              src="/tech/github-dark.svg"
               width={fontSize}
               height={fontSize}
-              />
-            </a>
+              alt="GitHub"
+              className="block dark:hidden"
+            />
+          
+            {/* Dark mode icon */}
+            <img
+              src="/tech/github-light.svg"
+              width={fontSize}
+              height={fontSize}
+              alt="GitHub (dark mode)"
+              className="hidden dark:block"
+            />
+          </a>
+          
           )}
           {socialLinks.twitter && (
             <a

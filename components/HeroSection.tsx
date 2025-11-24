@@ -6,6 +6,8 @@ import SectionBorder from "./SectionBorder";
 import GithubGraph from "./GithubContributions";
 import TechStack from "./TechStack";
 import ContactForm from "./ContactForm";
+import Reachout from "./ReachMeOut";
+import Footer from "./Footer";
 
 const trocchi = Trocchi({
     variable: "--font-trocchi",
@@ -45,10 +47,19 @@ export default function HeroSection() {
                     <GithubGraph />
                 </div>
                 <SectionBorder className="mt-6" />
+                <div className="mt-6">
             <TechStack/>
+                </div>
             <SectionBorder className="mt-6" />
             <ContactForm />
             <SectionBorder className="mt-6" />
+            <div className="mt-6">
+                <Reachout />
+            </div>
+            <SectionBorder className="mt-6" />
+            <div className="mb-6">
+                <Footer />
+            </div>
             </section>
 
         </main>

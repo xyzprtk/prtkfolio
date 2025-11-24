@@ -64,7 +64,7 @@ const techStack = [
 
 export default function TechStack() {
   return (
-    <div className={cn("w-full py-2", trocchi.className)}>
+    <div className={cn("w-full py-6 px-2", trocchi.className)}>
       <p className="text-xl font-medium text-foreground mb-6 opacity-80 ml-6 pb-6">Tech Stack</p>
       
       <div className="flex flex-wrap gap-8 sm:gap-12 items-center">
