@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { IconArrowLeft, IconCalendar } from "@tabler/icons-react";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import ScrollToTop from "@/components/ScrollToTop";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -60,6 +62,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <div className="relative min-h-screen flex justify-center pb-20">
+      <ScrollProgress className="top-0" />
       <main className="flex min-h-screen w-full max-w-3xl flex-col px-6 py-10 pt-32 bg-background/30">
         
         {/* Back Button */}
@@ -125,6 +128,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <MDXRemote source={content} />
         </article>
       </main>
+      <ScrollToTop />
     </div>
   );
 }

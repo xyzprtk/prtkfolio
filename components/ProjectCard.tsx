@@ -2,19 +2,35 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { IconArrowRight, IconBrandGithubFilled, IconExternalLink } from "@tabler/icons-react";
+import { IconArrowRight, IconWorld } from "@tabler/icons-react";
 import { Project } from "@/data/projects";
-import { Button } from "./ui/button";
+import { motion } from "motion/react";
 
 interface ProjectCardProps {
   project: Project;
 }
 
+// Define the animation variants once to keep code clean
+const expandVariants = {
+  initial: { 
+    width: 0, 
+    opacity: 0,
+    marginRight: 0 
+  },
+  hover: { 
+    width: "auto", 
+    opacity: 1,
+    marginRight: 4 // Space between icon and text when expanded
+  }
+};
+
+const transitionSettings = { type: "spring", stiffness: 300, damping: 20 };
+
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 transition-all hover:shadow-lg">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 transition-all hover:shadow-lg h-full">
       {/* Image Section */}
-      <div className="relative h-48 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+      <div className="relative h-48 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
         <Image
           src={project.image}
           alt={project.title}
@@ -24,7 +40,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </div>
 
       {/* Content Section */}
-      <div className="p-6 flex flex-col gap-4">
+      <div className="p-6 flex flex-col flex-1 gap-4">
         <div>
           <h3 className="text-xl font-bold font-(family-name:--font-trocchi) hover:underline mb-2">
             <Link href={`/work/${project.slug}`}>{project.title}</Link>
@@ -35,7 +51,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         {/* Tech Stack Tags */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mt-auto">
           {project.techStack.map((tech) => (
             <span
               key={tech}
@@ -46,35 +62,87 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           ))}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex gap-3 items-center justify-between">
+        {/* Actions Section */}
+        <div className="flex items-center justify-between pt-4 mt-2 border-t border-dashed border-neutral-200 dark:border-neutral-800">
+          <div className="flex gap-2">
+            
+            {/* Github Link */}
             {project.githubLink && (
-              <a
+              <motion.a
                 href={project.githubLink}
                 target="_blank"
                 rel="noreferrer"
-                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors flex justify-between items-center gap-1"
+                className="flex items-center gap-3 justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-foreground px-3 py-2 h-10 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
+                initial="initial"
+                whileHover="hover"
               >
-                <IconBrandGithubFilled size={20} /> Github
-              </a>
+                {/* Icon stays visible */}
+                <div className="relative flex items-center justify-center">
+                  <img
+                    src="/tech/github-dark.svg"
+                    width={20}
+                    height={20}
+                    alt="GitHub"
+                    className="block dark:hidden"
+                  />
+                  <img
+                    src="/tech/github-light.svg"
+                    width={20}
+                    height={20}
+                    alt="GitHub (dark mode)"
+                    className="hidden dark:block"
+                  />
+                </div>
+
+                {/* Text expands on hover */}
+                <motion.span
+                  className="overflow-hidden whitespace-nowrap text-sm font-medium font-(family-name:--font-trocchi)"
+                  variants={expandVariants}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  Github
+                </motion.span>
+              </motion.a>
             )}
+
+            {/* Live Link */}
             {project.liveLink && (
-              <a
+              <motion.a
                 href={project.liveLink}
                 target="_blank"
                 rel="noreferrer"
-                className="text-neutral-500 hover:text-black dark:hover:text-white transition-colors flex justify-between items-center gap-1"
+                className="flex items-center gap-3 justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-foreground px-3 py-2 h-10 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
+                initial="initial"
+                whileHover="hover"
               >
-                <IconExternalLink size={20} /> Live Link
-              </a>
+                <IconWorld size={20} />
+                <motion.span
+                  className="overflow-hidden whitespace-nowrap text-sm font-medium font-(family-name:--font-trocchi)"
+                  variants={expandVariants}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  Live Link
+                </motion.span>
+              </motion.a>
             )}
           </div>
 
+          {/* Read More Link */}
           <Link href={`/work/${project.slug}`}>
-            <Button variant="outline" size="sm" className="rounded-lg cursor-pointer">
-              <IconArrowRight size={20} />
-            </Button>
+            <motion.button
+              className="flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-foreground px-3 py-2 h-10 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
+              initial="initial"
+              whileHover="hover"
+            >
+              <motion.span
+                className="overflow-hidden whitespace-nowrap text-sm font-medium"
+                variants={expandVariants}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                Read More
+              </motion.span>
+              <IconArrowRight size={18} />
+            </motion.button>
           </Link>
         </div>
       </div>

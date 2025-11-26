@@ -33,6 +33,14 @@ const techStack = [
     path: "/tech/Apache Spark.svg",
   },
   {
+    name: "Streamlit",
+    path: "/tech/Streamlit.svg",
+  },
+  {
+    name: "FastAPI",
+    path: "/tech/FastAPI.svg",
+  },
+  {
     name: "TypeScript",
     path: "/tech/TypeScript.svg",
   },
@@ -59,7 +67,8 @@ const techStack = [
   {
     name: "Next.js",
     path: "/tech/Next.js.svg"
-  }
+  },
+  
 ];
 
 export default function TechStack() {

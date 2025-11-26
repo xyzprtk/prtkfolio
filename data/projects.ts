@@ -23,7 +23,8 @@ export interface Project {
       image: "/projects/olist-analysis.png",
       techStack: ["Python", "Pandas", "RFM"],
       slug: "ecommerce-analysis",
-      githubLink: "https://github.com/xyzprtk/olist-customer-insights"
+      githubLink: "https://github.com/xyzprtk/olist-customer-insights",
+      liveLink: "https://olist-customer-insights.vercel.app/"
     },
     {
       title: "Tech Minds: Analyzing Mental Health Trends in Technology Professionals",
@@ -32,5 +33,5 @@ export interface Project {
       techStack: ["Python", "Pandas", "Scikit-learn"],
       slug: "tech-minds",
       githubLink: "https://github.com/xyzprtk/MindFulTech"
-    }
+    },
   ];

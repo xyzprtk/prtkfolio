@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { IconArrowLeft, IconCalendar, IconClock } from "@tabler/icons-react";
 import { cache } from "react";
 import type { Metadata } from "next";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // 1. Optimize Data Fetching
 // This ensures we only read the file system once per request,
@@ -70,6 +72,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="relative min-h-screen flex justify-center pb-20">
+      <ScrollProgress className="top-0" />
       <main className="flex min-h-screen w-full max-w-3xl flex-col px-6 py-10 pt-32 bg-background/30">
         
         {/* Back Button */}
@@ -115,6 +118,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <MDXRemote source={post.content} />
         </article>
       </main>
+      <ScrollToTop />
     </div>
   );
 }
