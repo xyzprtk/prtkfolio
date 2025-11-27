@@ -34,9 +34,24 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://prtx.xyz';
+  const postUrl = `${baseUrl}/blog/${slug}`;
+
   return {
-    title: post.title, // This gets inserted into the %s in layout.tsx
+    title: post.title,
     description: post.description,
+    
+    // Add canonical URL
+    alternates: {
+      canonical: postUrl,
+    },
+    
+    // Add author
+    authors: [{ name: "Pratheek Nistala" }],
+    
+    // Add keywords from tags
+    keywords: post.tags,
+    
     openGraph: {
       title: post.title,
       description: post.description,
@@ -44,12 +59,15 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       publishedTime: post.date,
       authors: ["Pratheek Nistala"],
       tags: post.tags,
+      url: postUrl,
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.description,
     },
+    
+    // Add JSON-LD structured data in the component
   };
 }
 
@@ -70,55 +88,88 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com';
+  const postUrl = `${baseUrl}/blog/${slug}`;
+
+  // JSON-LD for article
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.description,
+    "datePublished": post.date,
+    "author": {
+      "@type": "Person",
+      "name": "Pratheek Nistala",
+      "url": baseUrl
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "Pratheek Nistala"
+    },
+    "keywords": post.tags.join(", "),
+    "url": postUrl,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": postUrl
+    }
+  };
+
   return (
-    <div className="relative min-h-screen flex justify-center pb-20">
-      <ScrollProgress className="top-0" />
-      <main className="flex min-h-screen w-full max-w-3xl flex-col px-6 py-10 pt-32 bg-background/30">
-        
-        {/* Back Button */}
-        <div className="mb-8">
-          <Link href="/blog">
-            <Button variant="ghost" className="pl-0 hover:bg-transparent cursor-pointer hover:text-primary gap-2">
-              <IconArrowLeft size={18} />
-              Back to Blog
-            </Button>
-          </Link>
-        </div>
-
-        {/* Article Header */}
-        <header className="mb-10 space-y-6 border-b border-dashed border-neutral-200 dark:border-white/10 pb-10">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="relative min-h-screen flex justify-center pb-20">
+        <ScrollProgress className="top-0" />
+        <main className="flex min-h-screen w-full max-w-3xl flex-col px-6 py-10 pt-32 bg-background/30">
           
-          <div className="flex gap-4 text-sm text-muted-foreground mb-4">
-             <span className="flex items-center gap-1">
-                <IconCalendar size={16} /> {post.date}
-             </span>
-             <span className="flex items-center gap-1">
-                <IconClock size={16} /> {post.readingTime}
-             </span>
+          {/* Back Button */}
+          <div className="mb-8">
+            <Link href="/blog">
+              <Button variant="ghost" className="pl-0 hover:bg-transparent cursor-pointer hover:text-primary gap-2">
+                <IconArrowLeft size={18} />
+                Back to Blog
+              </Button>
+            </Link>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl text-foreground font-bold font-(family-name:--font-trocchi) leading-tight">
-            {post.title}
-          </h1>
-          
-          <div className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-               <span key={tag} className="px-3 py-1 text-sm rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                 #{tag}
+          {/* Article Header */}
+          <header className="mb-10 space-y-6 border-b border-dashed border-neutral-200 dark:border-white/10 pb-10">
+            
+            <div className="flex gap-4 text-sm text-muted-foreground mb-4">
+               <span className="flex items-center gap-1">
+                  <IconCalendar size={16} /> {post.date}
                </span>
-            ))}
-          </div>
-        </header>
+               <span className="flex items-center gap-1">
+                  <IconClock size={16} /> {post.readingTime}
+               </span>
+            </div>
 
-        {/* MDX Content */}
-        <article className="prose prose-lg prose-neutral dark:prose-invert max-w-none 
-          prose-headings:font-(family-name:--font-trocchi) 
-          prose-a:text-primary hover:prose-a:underline
-          prose-img:rounded-xl prose-img:border prose-img:border-neutral-200 dark:prose-img:border-neutral-800">
-          <MDXRemote source={post.content} />
-        </article>
-      </main>
-      <ScrollToTop />
-    </div>
+            <h1 className="text-3xl sm:text-5xl text-foreground font-bold font-(family-name:--font-trocchi) leading-tight">
+              {post.title}
+            </h1>
+            
+            <div className="flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                 <span key={tag} className="px-3 py-1 text-sm rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                   #{tag}
+                 </span>
+              ))}
+            </div>
+          </header>
+
+          {/* MDX Content */}
+          <article className="prose prose-lg prose-neutral dark:prose-invert max-w-none 
+            prose-headings:font-(family-name:--font-trocchi) 
+            prose-a:text-primary hover:prose-a:underline
+            prose-img:rounded-xl prose-img:border prose-img:border-neutral-200 dark:prose-img:border-neutral-800">
+            <MDXRemote source={post.content} />
+          </article>
+        </main>
+        <ScrollToTop />
+      </div>
+    </>
   );
 }

@@ -1,15 +1,29 @@
-// app/work/page.tsx
-"use client";
-
 import { Trocchi } from "next/font/google";
 import { projects } from "@/data/projects";
 import ProjectCard from "@/components/ProjectCard";
+import { Metadata } from "next";
 
 const trocchi = Trocchi({
   variable: "--font-trocchi",
   subsets: ["latin"],
   weight: ["400"],
 });
+
+// SEO Metadata
+export const metadata: Metadata = {
+  title: "Projects & Work",
+  description: "Portfolio of data engineering and machine learning projects including credit risk modeling, customer analytics, and mental health analysis in tech. Featuring Python, XGBoost, Pandas, and Scikit-learn implementations.",
+  openGraph: {
+    title: "Projects & Work - Pratheek Nistala",
+    description: "Portfolio of data engineering and machine learning projects",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Projects & Work - Pratheek Nistala",
+    description: "Portfolio of data engineering and machine learning projects",
+  },
+};
 
 export default function WorkPage() {
   return (
