@@ -43,6 +43,7 @@ export default function BookCall() {
                 src="/profile.png"
                 alt="Profile"
                 fill
+                sizes="24px"
                 className="object-cover"
               />
             </div>

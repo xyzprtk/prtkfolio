@@ -88,6 +88,7 @@ export default function TechStack() {
                 src={tech.path}
                 alt={tech.name}
                 fill
+                sizes="48px"
                 className={cn(
                   "object-contain transition-all duration-300",
                   " opacity-60", 

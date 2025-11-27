@@ -24,8 +24,6 @@ const expandVariants = {
   }
 };
 
-const transitionSettings = { type: "spring", stiffness: 300, damping: 20 };
-
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 transition-all hover:shadow-lg h-full">
@@ -35,6 +33,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           src={project.image}
           alt={project.title}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
@@ -78,14 +77,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               >
                 {/* Icon stays visible */}
                 <div className="relative flex items-center justify-center">
-                  <img
+                  <Image
                     src="/tech/github-dark.svg"
                     width={20}
                     height={20}
                     alt="GitHub"
                     className="block dark:hidden"
                   />
-                  <img
+                  <Image
                     src="/tech/github-light.svg"
                     width={20}
                     height={20}
@@ -135,7 +134,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               whileHover="hover"
             >
               <motion.span
-                className="overflow-hidden whitespace-nowrap text-sm font-medium"
+                className="overflow-hidden whitespace-nowrap text-sm font-medium font-(family-name:--font-trocchi)"
                 variants={expandVariants}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >

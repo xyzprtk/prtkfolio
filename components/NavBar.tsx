@@ -16,6 +16,7 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import LogoText from "./logoText";
 import { Trocchi } from "next/font/google";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const trocchi = Trocchi({
   variable: "--font-trocchi",
@@ -99,7 +100,8 @@ export default function NavbarComponent() {
                 </motion.div>
               );
             })}
-            <div className="flex w-full justify-center">
+            <div className="flex w-full justify-center mt-4">
+              <ThemeSwitcher />
             </div>
           </MobileNavMenu>
         </MobileNav>
