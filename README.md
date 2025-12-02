@@ -127,8 +127,8 @@ Includes a modular component system, MDX-powered blog and project pages, dynamic
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/your-username/your-portfolio.git
-cd your-portfolio
+git clone https://github.com/xyzprtk/prtkfolio.git
+cd prtkfolio
 ```
 
 ### 2️⃣ Install dependencies
