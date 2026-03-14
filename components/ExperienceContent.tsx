@@ -27,7 +27,7 @@ export default function ExperienceContent() {
       duration: "June 2025 – Present",
       description: `• Collaborated with the data science team on Delinquency Score Model by leading feature engineering efforts and enabling an XGBoost-driven probability-to-score mapping (101 to 670) with Class 1 to 5 risk segmentation, improving model discriminatory power (AUC +4, KS +7).
 • Developed scorecard-style models to convert predictive outputs into business-interpretable risk scores.
-• Conducted SQL-driven EDA and data quality validation on large datasets (5M+ records) to support modeling workflows.
+• Conducted SQL-driven EDA and data quality validation on large datasets (50M+ records) to support modeling workflows.
 • Performed performance validation of external vendor data against internal risk models.`,
       href: "https://www.dnb.com/",
       logoUrl: "/dnb.svg",

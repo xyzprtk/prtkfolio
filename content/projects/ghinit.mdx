@@ -1,0 +1,143 @@
+---
+title: "ghinit: A Python CLI for creating GitHub repositories and bootstrapping the current directory without leaving the terminal."
+date: "2026-03-14"
+---
+**Links:** [GitHub](https://github.com/xyzprtk/ghinit) | [PyPI](https://pypi.org/project/ghinit/) | [Follow me on X](https://x.com/xyzprtk) | [Blog](https://prtx.xyz/blog)
+
+## Introduction
+
+Before this project, I had never published a Python package. I had used Python for coursework and small scripts, but I wanted to build something I would actually use every day. 
+
+In my early college days doing web development, git was a constant. I loved it—every commit felt like a save point. But after manually running `git init`, staging files, committing, setting the branch, adding the remote origin, and pushing for the hundredth time, it stopped feeling fine. It was just repetitive work. 
+
+I didn't think about automating it until I came across someone complaining about the exact same thing on X. That was the push I needed. I planned to build a Python CLI tool over a week, but a free Friday turned it into a weekend project. `ghinit` is the result: a tool that wraps that entire tedious process into a single `repo` command.
+
+## Project Goal
+
+The primary goal of `ghinit` was to completely automate the boilerplate of starting a new software project. I wanted a tool that could:
+1. **Handle Version Control:** Initialize local git, create the remote GitHub repo, and push the initial commit.
+2. **Scaffold Boilerplate:** Generate starting files for frameworks like Flask or React dynamically.
+3. **Respect User Preferences:** Be highly configurable, fitting perfectly into my Linux daily-driver setup via local config files.
+4. **Learn Package Distribution:** Teach me what it actually takes to ship a Python package properly, from writing the code to getting it onto PyPI via automated CI/CD pipelines.
+
+Additionally, I wanted to use this as an opportunity to test AI coding assistants. I used OpenAI's Codex to help plan the v1 architecture, generate the boilerplate scaffolding, and figure out the initial terminal UI flow, which allowed me to focus on the actual logic and system design.
+
+## Project Working
+
+### Native Tooling (No Auth Required)
+The hardest part of building a GitHub tool is usually handling OAuth flows, token storage, and session management. I skipped all of that. `ghinit` acts as a wrapper around your machine's native `git` and `gh` (GitHub CLI) installations. If you are already logged in via `gh auth login`, my tool just uses that. 
+
+The foundation is a simple function that runs terminal commands and captures the output safely:
+
+```python
+# ghinit/core.py
+def run_command(
+    args: Iterable[str],
+    cwd: Optional[Path] = None,
+    check: bool = True,
+) -> CommandResult:
+    args_list = list(args)
+    completed = subprocess.run(
+        args_list,
+        cwd=str(cwd) if cwd else None,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    result = CommandResult(
+        stdout=completed.stdout.strip(),
+        stderr=completed.stderr.strip(),
+        returncode=completed.returncode,
+    )
+    if check and result.returncode != 0:
+        raise CommandExecutionError(
+            args=args_list,
+            stderr=result.stderr,
+            stdout=result.stdout,
+            returncode=result.returncode,
+        )
+    return result
+```
+
+### Interactive CLI Pipeline
+I used `click` to handle commands and `questionary` for interactive prompts. I didn't want a tool that runs silently and leaves you guessing, so I built an executor that drives the whole flow and tells you exactly what is happening:
+
+```python
+# ghinit/cli.py
+def execute_steps(steps: Sequence[Step]) -> None:
+    total = len(steps)
+    for index, (label, operation) in enumerate(steps, start=1):
+        click.echo(f"{step_label(index, total, label)} ... ", nl=False)
+        try:
+            operation()
+        except GhinitError as exc:
+            click.echo(err("FAIL"))
+            raise click.ClickException(str(exc)) from exc
+        click.echo(ok("OK"))
+```
+
+When you type `repo`, it executes these 6 steps seamlessly:
+1. Checks prerequisites (`git` and `gh`).
+2. Creates the GitHub repository remotely.
+3. Applies a project template.
+4. Fetches a `.gitignore` based on the project language.
+5. Initializes the local git repository and commits.
+6. Pushes to the remote.
+
+### Project Templates & Scaffolding
+Creating the repo is only half the work; you still need starting files. I built a templating engine where you can pick a framework (or point to your own custom template folder). It performs variable substitution to automatically fill in things like the repo name and your GitHub username:
+
+```python
+# ghinit/core.py
+def render_template_content(content: str, variables: Dict[str, str]) -> str:
+    rendered = content
+    for key, value in variables.items():
+        rendered = rendered.replace(f"{{{{{key}}}}}", value)
+    return rendered
+```
+
+### Persistent Configuration
+Because I use Linux as my daily driver, I believe good tools let you configure them. `ghinit` uses Python's `tomllib` to store your defaults at `~/.ghinit.toml`. If you spend a month building private Flask APIs, you set those as defaults once, run `repo my-project`, and everything is set up without asking a single question.
+
+## Key Takeaways
+
+1. **Python Package Distribution:** Writing the code was the easy part. Getting it onto PyPI was where I actually learned how packaging works. The key piece in `pyproject.toml` is the entry point, which makes `repo` available as a terminal command after installation:
+
+```toml
+# pyproject.toml
+[project.scripts]
+repo = "ghinit.cli:main"
+```
+
+2. **CI/CD Automation:** Getting the release pipeline right took some trial and error, but setting up GitHub Actions to handle releases was incredibly satisfying. Now, pushing a version tag automatically builds and uploads the package to PyPI:
+
+```yaml
+# .github/workflows/release.yml
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload dist/*
+```
+
+3. **Working with AI:** Using Codex taught me that AI is fantastic for handling boilerplate and scaffolding. It handles the parts that take time but require no real thinking, freeing me up to focus on the architecture and flow.
+
+## Conclusion
+
+This was a highly rewarding weekend project. It is small enough to be maintainable, but useful enough that I use it constantly. It fixed a real annoyance in my daily work and taught me the end-to-end process of shipping a Python package properly.
+
+If you find yourself running `git init`, `git add`, `git commit`, `git remote add`, and `git push` every time you start something new, you should try this out:
+
+```bash
+pip install ghinit
+repo my-new-project --private --template flask
+```
+
+The code is fully open source under the MIT License. If something is broken or missing, feel free to open an issue or send a PR.
+
+- **GitHub:**[github.com/xyzprtk/ghinit](https://github.com/xyzprtk/ghinit)
+- **X (Twitter):** [x.com/xyzprtk](https://x.com/xyzprtk)
+- **Blog:** [prtx.xyz/blog](https://prtx.xyz/blog)
+
+Happy coding!
+```

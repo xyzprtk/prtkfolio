@@ -34,4 +34,21 @@ export interface Project {
       slug: "tech-minds",
       githubLink: "https://github.com/xyzprtk/MindFulTech"
     },
+    {
+      title: "x-reply: Generate contextual, human-sounding replies for X (Twitter) posts with AI.",
+      description: "A Chrome extension that generates contextual, human-sounding replies for X (Twitter) posts using AI.",
+      image: "/projects/x-reply.png",
+      techStack: ["Python", "Chrome Extension", "OpenRouter","OpenAI", "Mistral-7B-Instruct"],
+      slug: "x-reply",
+      githubLink: "https://github.com/xyzprtk/x-reply"
+    },
+    {
+      title: "ghinit: Create GitHub repositories and bootstrapping the current directory without leaving the terminal.",
+      description: "Python CLI for creating GitHub repositories and bootstrapping the current directory without leaving the terminal.",
+      image: "/projects/ghinit.png",
+      techStack: ["Python", "CLI", "GitHubActions", "PyPi","Git","Click", "Questionary"],
+      slug: "ghinit",
+      githubLink: "https://github.com/xyzprtk/ghinit",
+      liveLink: "https://pypi.org/project/ghinit/"
+    }
   ];
