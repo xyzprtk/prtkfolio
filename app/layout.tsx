@@ -27,12 +27,13 @@ const trocchi = Trocchi({
 // SEO Configuration
 const siteConfig = {
   name: "Pratheek Nistala",
-  title: "Pratheek Nistala - Data Engineer & Full Stack Developer",
+  title: "Pratheek Nistala - Data Scientist | Engineer",
   description: "Data Engineer specializing in scalable data pipelines, machine learning, and full-stack development. Explore my portfolio of data science projects, technical blog posts, and engineering insights.",
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://prtx.xyz',
   ogImage: '/og-image.png', 
   creator: '@xyzprtk', // Your Twitter handle
   keywords: [
+    'Data Scientist',
     'Data Engineer',
     'Full Stack Developer',
     'Machine Learning',
@@ -43,7 +44,9 @@ const siteConfig = {
     'Technical Blog',
     'Data Pipelines',
     'Big Data',
-    'Cloud Computing'
+    'Cloud Computing',
+    'AI',
+    'RAG',
   ],
 };
 
@@ -134,7 +137,7 @@ export default function RootLayout({
               "@type": "Person",
               "name": "Pratheek Nistala",
               "url": siteConfig.url,
-              "jobTitle": "Data Engineer",
+              "jobTitle": "Data Scientist | Engineer",
               "description": siteConfig.description,
               "image": `${siteConfig.url}${siteConfig.ogImage}`,
               "sameAs": [
