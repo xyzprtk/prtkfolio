@@ -211,6 +211,7 @@ export const MobileNavToggle = ({
     <button
       onClick={onClick}
       className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-400 hover:scale-105 active:scale-95"
+      aria-label = {isOpen ? "Close menu" : "Open menu"} 
     >
       {isOpen ? (
         <IconX className="w-5 h-5 text-black dark:text-white" />

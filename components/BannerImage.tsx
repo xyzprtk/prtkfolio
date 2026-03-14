@@ -43,7 +43,8 @@ export default function BannerSection({
           className="rounded-lg w-full h-[200px] sm:h-[270px] object-cover"
           src={imageSrc}
           style={{ color: 'transparent', minHeight: '100px' }}
-          priority
+          priority = {true}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
         />
         <BannerOverlay position="top" />
         <BannerOverlay position="bottom" />

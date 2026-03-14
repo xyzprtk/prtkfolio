@@ -15,46 +15,49 @@ const techStack = [
         name: "Python",
         path: "/tech/Python.svg",
       },
+      {
+        name: "Pandas",
+        path: "/tech/pandas.svg",
+      },
+      {
+        name: "Scikit-Learn",
+        path: "/tech/scikit-learn.svg",
+      },
+      {
+        name: "XGBoost",
+        path: "/tech/xgboost.svg",
+      },
+      {
+        name: "Apache Spark",
+        path: "/tech/Apache Spark.svg",
+      },
   {
         name: "SQL",
         path: "/tech/SQL.svg",
   },
-
   {
-    name: "Linux",
-    path: "/tech/Linux.svg",
-  },
-  {
-    name: "Git",
-    path: "/tech/Git.svg",
-  },
-  {
-    name: "Apache Spark",
-    path: "/tech/Apache Spark.svg",
-  },
-  {
-    name: "Streamlit",
-    path: "/tech/Streamlit.svg",
-  },
-  {
-    name: "FastAPI",
-    path: "/tech/FastAPI.svg",
-  },
-  {
-    name: "TypeScript",
-    path: "/tech/TypeScript.svg",
+    name: "Jupyter",
+    path: "/tech/Jupyter.svg",
   },
   {
     name: "Docker",
     path: "/tech/Docker.svg",
   },
   {
-    name: "Scikit-Learn",
-    path: "/tech/scikit-learn.svg",
-  },
-  {
     name: "Kubernetes",
     path: "/tech/Kubernetes.svg",
+  },
+  {
+    name: "Git",
+    path: "/tech/Git.svg",
+  },
+  {
+    name: "Linux",
+    path: "/tech/Linux.svg",
+  },
+  {
+    name: "FastAPI",
+    path: "/tech/FastAPI.svg",
   },
   {
     name: "Google Cloud",
@@ -65,9 +68,9 @@ const techStack = [
     path: "/tech/Bash.svg",
   },
   {
-    name: "Next.js",
-    path: "/tech/Next.js.svg"
-  },
+    name: "Streamlit",
+    path: "/tech/Streamlit.svg",
+  }
   
 ];
 

@@ -23,9 +23,12 @@ export default function ExperienceContent() {
   const experiences: ExperienceItem[] = [
     {
       company: "Dun and Bradstreet",
-      position: "Data Science Intern ( Risk Analysis and Modeling)",
+      position: "Data Science Apprentice ( Risk Analysis and Modeling)",
       duration: "June 2025 – Present",
-      description: "As a Data Science Intern at Dun & Bradstreet, I built and validated credit risk models using logistic regression and tree based methods, and developed scorecard-style models for borrower scoring. Implemented data pipelines and feature engineering in PySpark on Databricks, ran SQL-driven analysis for data quality and exploration, and evaluated models with cross-validation and business-focused metrics. Produced actionable analytics and model artifacts to support risk assessment and decision making.",
+      description: `• Collaborated with the data science team on Delinquency Score Model by leading feature engineering efforts and enabling an XGBoost-driven probability-to-score mapping (101 to 670) with Class 1 to 5 risk segmentation, improving model discriminatory power (AUC +4, KS +7).
+• Developed scorecard-style models to convert predictive outputs into business-interpretable risk scores.
+• Conducted SQL-driven EDA and data quality validation on large datasets (5M+ records) to support modeling workflows.
+• Performed performance validation of external vendor data against internal risk models.`,
       href: "https://www.dnb.com/",
       logoUrl: "/dnb.svg",
     },
@@ -83,7 +86,7 @@ export default function ExperienceContent() {
           
           {/* Description */}
           <div className="pl-10 sm:pl-16">
-            <p className="text-md sm:text-md leading-relaxed text-muted-foreground">
+            <p className="text-md sm:text-md leading-relaxed text-muted-foreground whitespace-pre-line">
               {exp.description}
             </p>
           </div>

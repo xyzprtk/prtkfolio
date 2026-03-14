@@ -31,7 +31,7 @@ export default function GithubGraph() {
       <div className="w-full h-40 bg-neutral-100 dark:bg-neutral-900 rounded-xl animate-pulse" />
     );
   }
-
+  const username = "xyzprtk";
   return (
     <div
       className={cn(
@@ -41,12 +41,12 @@ export default function GithubGraph() {
     >
       <div className="flex w-full items-center justify-between gap-2 mb-6 text-foreground/80">
         <h3 className="text-xl font-medium">GitHub Contributions</h3>
-        <a href="https://github.com/xyzprtk" target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-sm font-normal hover:underline">@xyzprtk</a>
+        <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-sm font-normal hover:underline">@{username}</a>
       </div>
 
       <div className="w-full overflow-hidden flex justify-center">
         <GitHubCalendar
-          username="xyzprtk"
+          username={username}
           blockSize={12}
           blockMargin={4}
           fontSize={14}

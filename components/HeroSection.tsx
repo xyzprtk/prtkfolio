@@ -27,15 +27,16 @@ export default function HeroSection() {
 
 
                     <p>
-                        I turn messy datasets into intelligent systems. My focus is on <a className="dark:text-white/80 text-black/80 font-bold">Analytics, Machine Learning, and Credit Risk Modeling</a>, backed by a strong engineering foundation in <a className="dark:text-white/80 text-black/80 font-bold">Linux, Backend, and Full-Stack Development</a> that lets me take models from exploration all the way through to production.
-                        <br />
-                        <br />
-                        Currently diving into <a>
-                            </a><a className="dark:text-white/80 text-black/80 font-bold">LLM Engineering, RAG Systems, and MLOps</a> because I want to build solutions that leverage the latest in AI.
-                        <br />
-                        <br />
-                        When I'm not building, I'm writing. I share what I learn through <a href="/blog" className="dark:text-white/80 text-black/80 font-bold">blogs</a> on code, technology, AI, Linux, and everything in between.
-
+  I do data science end-to-end. <strong>Exploratory analysis</strong>, <strong>feature engineering</strong>, <strong>model development</strong>, <strong>validation</strong>, <strong>deployment</strong>.
+  <br></br>
+  <br></br>
+  My work centers on <strong>credit risk modeling</strong>, <strong>predictive analytics</strong>, and <strong>machine learning pipelines</strong>. I work with structured and unstructured data, build statistical models, train classifiers and regressors, tune hyperparameters, evaluate performance.
+  <br></br>
+  {/* <br></br> */}
+  Currently expanding into <strong>LLM applications</strong> and <strong>RAG systems</strong>. Working with embeddings, vector databases, prompt engineering, retrieval augmentation.
+  <br></br>
+  <br></br>
+  I write documentation and technical posts on methods, implementations, and results. More about my writings <a href="/blog" className="dark:text-white/80 text-black/80 font-bold">here</a>.
                     </p>
                 </div>
                 <SectionBorder className="mt-6" />

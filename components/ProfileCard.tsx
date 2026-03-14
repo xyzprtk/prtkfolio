@@ -26,8 +26,8 @@ const trochchi = Trocchi({
 
 export default function ProfileHeader({
   name = "Pratheek Nistala",
-  age = "22",
-  title = "Data Engineer • Machine Learning",
+  age = "23",
+  title = "Data Scientist • Machine Learning",
   profileImage = "/profile.png",
   socialLinks = {
     twitter: "https://x.com/xyzprtk",
@@ -72,6 +72,7 @@ export default function ProfileHeader({
           {socialLinks.github && (
             <a
             href={socialLinks.github}
+            aria-label="GitHub Profile"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-80 active:opacity-75"
@@ -83,7 +84,7 @@ export default function ProfileHeader({
             }}
           >
             {/* Light mode icon */}
-            <img
+            <Image
               src="/tech/github-dark.svg"
               width={fontSize}
               height={fontSize}
@@ -92,7 +93,7 @@ export default function ProfileHeader({
             />
           
             {/* Dark mode icon */}
-            <img
+            <Image
               src="/tech/github-light.svg"
               width={fontSize}
               height={fontSize}
@@ -106,6 +107,7 @@ export default function ProfileHeader({
             <a
               className="hover:opacity-80 touch-manipulation active:opacity-75"
               href={socialLinks.twitter}
+              aria-label="Twitter Profile"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -122,6 +124,7 @@ export default function ProfileHeader({
             <a
               className="hover:opacity-80 touch-manipulation active:opacity-75"
               href={socialLinks.resume}
+              aria-label="Resume"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -138,6 +141,7 @@ export default function ProfileHeader({
             <a
               className="hover:opacity-80 touch-manipulation active:opacity-75"
               href={socialLinks.linkedin}
+              aria-label="LinkedIn Profile"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -154,9 +158,9 @@ export default function ProfileHeader({
             <span className="relative inline-block group">
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`}
+                aria-label={`Open ${location} in Google Maps`}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Open ${location} in Google Maps`}
                 className="inline-flex items-center justify-center hover:opacity-80 active:opacity-75 focus:outline-none"
               >
                 <IconMapPinFilled size={fontSize || 18} />
