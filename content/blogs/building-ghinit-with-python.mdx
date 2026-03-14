@@ -1,0 +1,166 @@
+---
+title: "Building ghinit: Automating GitHub Repository Creation with Python"
+date: "2026-03-14"
+description: "How I built and published my first Python package to automate git repository initialization, boilerplate generation, and GitHub syncing in a single command."
+tags: ["Python", "Automation", "Open Source", "CLI", "GitHub"]
+---
+
+Before this project, I had never published a Python package. Building ghinit taught me what it actually takes to ship one properly, from writing the code to getting it onto PyPI.
+
+Let's start from the beginning. I had used Python before, but always for coursework or small scripts. This was my first real project with it, and I wanted it to be something I would actually use every day.
+
+With AI coding tools getting better, writing boilerplate is no longer the hard part. So for this project, I tried OpenAI's Codex agent purely out of curiosity. I had never used one before, and this felt like a good project to test it on.
+
+Here is a bit of background on why this idea had been sitting in my head for a while.
+
+In the early days of college, I worked mostly on web projects, which meant git was a constant. I loved it. Every commit felt like a save point. The setup was fine at first: initialize a repo, stage the files, commit, set the branch, add the remote origin, push. Done.
+
+But after doing that exact sequence for the hundredth time on a new project, it stopped feeling fine. It was just repetitive work. I did not think about automating it until I came across someone else complaining about the same thing on X. That was the push I needed. Since I had also been wanting to build a Python CLI tool, I decided to just do it. I planned to take a week, but a free Friday turned it into a weekend project.
+
+Building this fast would not have been easy without AI writing the scaffolding. That is what these tools are actually good for: handling the parts that take time but require no real thinking, so you can spend your energy on the parts that do.
+
+Once I decided to build it, I asked Codex to help me plan v1. It laid out the file structure, the terminal UI, the colors, the flow. I reviewed everything and pushed back on a few things: file placement, structure, some color choices. We went back and forth until the plan felt right.
+
+One thing I pushed for specifically was a config file. I use Linux as my daily driver, and on Linux, good tools let you configure them. Codex suggested `.toml` for the config format, which made sense. You can read more about my Linux setup on my [blog](https://prtx.xyz/blog).
+
+I also decided early on to keep the project fully open source under an MIT License. Open source builds trust. People can read the code, catch bugs, and contribute. The repo is [here](https://github.com/xyzprtk/ghinit).
+
+With the plan ready, I started writing.
+
+### The Core Idea: Use What Already Exists
+
+The hardest part of building a GitHub tool is usually auth. OAuth flows, token storage, session management. It is a lot of work that has nothing to do with what the tool is actually trying to do.
+
+So I skipped all of it. `ghinit` wraps `git` and `gh` (GitHub CLI). If you are already logged in via `gh auth login`, my tool just uses that. No new auth logic needed.
+
+The foundation is a small function that runs terminal commands and captures the result:
+
+```python
+# ghinit/core.py
+def run_command(
+    args: Iterable[str],
+    cwd: Optional[Path] = None,
+    check: bool = True,
+) -> CommandResult:
+    args_list = list(args)
+    completed = subprocess.run(
+        args_list,
+        cwd=str(cwd) if cwd else None,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    result = CommandResult(
+        stdout=completed.stdout.strip(),
+        stderr=completed.stderr.strip(),
+        returncode=completed.returncode,
+    )
+    if check and result.returncode != 0:
+        raise CommandExecutionError(
+            args=args_list,
+            stderr=result.stderr,
+            stdout=result.stdout,
+            returncode=result.returncode,
+        )
+    return result
+```
+
+Everything else in the project calls this function. It runs `gh repo create`, `git init`, `git push`, and anything else the tool needs, without touching the GitHub API directly.
+
+### Making It Feel Good to Use
+
+For the CLI itself, I used `click` to handle commands and `questionary` for the interactive prompts.
+
+The one thing I did not want was a tool that runs silently and leaves you guessing. Each operation needed to show up clearly so you always know where things are. Here is the executor that drives the whole flow:
+
+```python
+# ghinit/cli.py
+def execute_steps(steps: Sequence[Step]) -> None:
+    total = len(steps)
+    for index, (label, operation) in enumerate(steps, start=1):
+        click.echo(f"{step_label(index, total, label)} ... ", nl=False)
+        try:
+            operation()
+        except GhinitError as exc:
+            click.echo(err("FAIL"))
+            raise click.ClickException(str(exc)) from exc
+        click.echo(ok("OK"))
+```
+
+When you type `repo` in your terminal, it runs through each step and tells you exactly what is happening:
+
+1. **Checking prerequisites** (ensuring `git` and `gh` are installed).
+2. **Creating the GitHub repository** remotely.
+3. **Applying a project template** (more on this below).
+4. **Fetching a `.gitignore`** (pulled from GitHub based on your project language).
+5. **Initializing the local git repository** and making the initial commit.
+6. **Pushing to the remote**.
+
+### Project Templates
+
+Creating the repo is only half the work. You still need the starting files. A Flask app needs `app.py` and `requirements.txt`. A React project needs a different set of files. I was writing these by hand every time.
+
+So I added a templating engine. You pick a framework when you run the tool, and it sets up the files for you. It also does variable substitution, so things like the repo name and your GitHub username get filled in automatically:
+
+```python
+# ghinit/core.py
+def render_template_content(content: str, variables: Dict[str, str]) -> str:
+    rendered = content
+    for key, value in variables.items():
+        rendered = rendered.replace(f"{{{{{key}}}}}", value)
+    return rendered
+```
+
+If the built-in templates do not cover your use case, you can point the config to your own folder of templates.
+
+### Config File
+
+I mentioned earlier that I wanted a config file. Here is why it matters in practice.
+
+The tool stores your defaults at `~/.ghinit.toml`. Preferred visibility, default template, custom template paths. If you spend a month building private Flask APIs, you set those as defaults once and the tool stops asking. Just run `repo my-project` and everything is already set.
+
+Using Python's `tomllib` to read the config kept things simple. No extra libraries, no overhead.
+
+### Shipping It
+
+Writing the code was the easy part. Getting it onto PyPI was where I had to actually learn things.
+
+The key piece in `pyproject.toml` is the entry point. This one line is what makes `repo` available as a terminal command after install:
+
+```toml
+# pyproject.toml
+[project.scripts]
+repo = "ghinit.cli:main"
+```
+
+I also set up GitHub Actions to handle releases. Push a version tag, and the workflow builds and uploads to PyPI on its own:
+
+```yaml
+# .github/workflows/release.yml
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload dist/*
+```
+
+Getting this right took some trial and error, but once it worked, it was satisfying in a way that the code itself was not. The code solves the problem. The pipeline means you never have to think about the release process again.
+
+### Wrapping Up
+
+This was a good project. Small enough to finish in a weekend, useful enough to keep using. It fixed a real annoyance in my daily work and taught me how to properly ship a Python package.
+
+If you run `git init`, `git add`, `git commit`, `git branch`, `git remote add`, `git push` every time you start something new, you should try this:
+
+```bash
+pip install ghinit
+repo my-new-project --private --template flask
+```
+
+The code is open source. If something is broken or missing, open an issue or send a PR.
+
+- **GitHub:** [github.com/xyzprtk/ghinit](https://github.com/xyzprtk/ghinit)
+- **X (Twitter):** [x.com/xyzprtk](https://x.com/xyzprtk)
+- **Blog:** [prtx.xyz/blog](https://prtx.xyz/blog)
+
+Happy coding!

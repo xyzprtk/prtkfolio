@@ -1,0 +1,131 @@
+---
+title: "Hyprland on Fedora: How a Tiling Window Manager Changed the Way I Work"
+date: "2026-02-26"
+description: "I went from GNOME on Ubuntu to GNOME on Fedora, then took a hard left into Hyprland. Here is what changed, what I learned, and why I am not going back."
+tags: ["Linux", "Hyprland", "Fedora", "Productivity", "Dotfiles", "WM"]
+---
+
+I have been on Linux for a while now. First Ubuntu with GNOME, then Fedora with GNOME. The switch from Ubuntu to Fedora was straightforward. Same desktop, different base. Things worked a bit cleaner, updates were more predictable, and DNF felt more honest than APT. But the workflow was still the same: open apps, drag windows around, reach for the mouse constantly.
+
+At some point I tried i3. It lasted about two days. The config felt hostile, the learning curve was steep, and I was not ready to rethink how I used a computer from scratch. I went back to GNOME and told myself tiling window managers were not for me.
+
+That was wrong.
+
+A few months later I tried Hyprland. I am still on it.
+
+### Why GNOME Was Not Enough
+
+GNOME is a good desktop. It is clean, it works out of the box, and for most people it is exactly what they need. But the more I used it, the more I noticed the friction.
+
+Every time I switched tasks, I was either reaching for the mouse, clicking through the Activities overview, or using `Super` to search for a window I already had open. It was not slow. It just required more thought than it should have. The windows did not have a clear place. A browser here, a terminal there, a PDF somewhere behind both of them. Clutter was always one distraction away.
+
+I wanted every window to have a fixed, predictable spot. I wanted to move between them without looking away from the keyboard. GNOME was not built for that.
+
+### The First Week on Hyprland
+
+Hyprland is a tiling window manager. Windows do not float around freely. They are arranged in a grid, and every window gets its own space on screen. Nothing overlaps unless you tell it to.
+
+The first week was an adjustment. My muscle memory kept reaching for the mouse. But I had made a rule for myself: touch the mouse as little as possible. Force the new habit. By day four, switching workspaces with `Super + 1` through `Super + 5` felt natural. By day seven, I had stopped thinking about it.
+
+The difference from i3 was the config format. Hyprland uses its own config language that reads closer to plain text than to a programming language. I could open `~/.config/hypr/hyprland.conf` and understand what every line was doing on the first read. That mattered. i3 had defeated me partly because the config felt like a wall. Hyprland's config felt like a conversation.
+
+### Window Management Without the Clutter
+
+The biggest change to my workflow was workspaces.
+
+On GNOME I had everything on two or three virtual desktops, loosely organized. On Hyprland I have ten workspaces with a strict purpose for each one. Workspace 1 is the terminal. Workspace 2 is the browser. Workspace 3 is the editor. Workspace 5 is communication. Every app has a home, and it is always in the same place.
+
+This sounds like a small thing. It is not. When I need the browser, I press `Super + 2`. I do not look for it. I do not alt-tab through six windows. I just press two keys and it is there. The cognitive load of managing open windows dropped to almost zero.
+
+Hyprland also handles multi-window layouts cleanly. If I need a terminal and a browser side by side, I open both on the same workspace and they split the screen automatically. I can resize the split with `Super + R` and a direction key. No dragging, no snapping, no guessing.
+
+```conf
+# hyprland.conf
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+```
+
+The `movetoworkspace` binds are equally useful. If I open something on the wrong workspace, `Super + Shift + [number]` moves it where it belongs. Two keys. Done.
+
+### The Config Is the Point
+
+Hyprland is configured entirely through a single text file. There is no settings GUI. No toggle buried three menus deep. Everything lives in `hyprland.conf`, and everything is intentional.
+
+This is where Hyprland separates itself from most desktop environments. You are not limited to what the developers decided to expose as a setting. If you want a behavior, you write it. Gaps between windows, border colors, animation curves, monitor layout, which app opens on which workspace at startup. All of it is a few lines of config.
+
+Here is a small example: I set every browser window to automatically open on workspace 2, every time, without me doing anything:
+
+```conf
+# hyprland.conf
+windowrulev2 = workspace 2, class:^(firefox)$
+windowrulev2 = workspace 3, class:^(code)$
+windowrulev2 = workspace 1, class:^(kitty)$
+```
+
+Now when I boot up and open Firefox, it goes straight to workspace 2. VS Code goes to 3. The terminal goes to 1. My environment assembles itself.
+
+### Animations That Do Not Get in the Way
+
+I was skeptical about animations. They felt like a cosmetic feature, the kind of thing that looks good in a screenshot but slows you down in practice.
+
+Hyprland's animations are different. They are fast enough that they do not interrupt you, but present enough that they give you spatial context. When you switch workspaces, the screen slides. When a window opens, it fades in with a slight scale. It sounds minor, but it makes the desktop feel coherent. You always know where you are and where you came from.
+
+The animation system is also fully configurable. You can set the duration, the easing curve, and the style for every type of transition independently:
+
+```conf
+# hyprland.conf
+animations {
+    enabled = yes
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = workspaces, 1, 6, default, slide
+}
+```
+
+If you want no animations at all, one line turns them off. The point is that it is your call.
+
+### Fully Modular by Design
+
+One of the things I appreciate most about Hyprland is that it does not try to be everything. It manages windows. That is its job.
+
+Everything else is a separate tool that you choose and wire together yourself. The status bar is a separate program. The notification daemon is separate. The app launcher is separate. The wallpaper tool is separate. You pick the ones you want, configure them individually, and they all communicate through standard protocols.
+
+My current setup uses **Waybar** for the status bar, **notify-send** for notifications, **Ulauncher** as the launcher, and **Hyprpaper** for the wallpaper. Each one has its own config file. If I want to swap out the launcher tomorrow, I change two lines and it is done. Nothing else breaks. I also added custom scripts to the waybar config to show the current workspace and the time, along with music widget at the center.
+
+This is the part of Hyprland that took the most time to set up, but it also means the final setup is exactly what I want. Nothing more, nothing less.
+
+### Living Without the Mouse
+
+After a few weeks on Hyprland, I noticed I was barely touching the mouse.
+
+Switching workspaces: keyboard. Moving windows: keyboard. Resizing splits: keyboard. Opening apps: keyboard via Wofi. Closing windows: `Super + Q`. Floating a window temporarily: `Super + T`.
+
+The mouse is still there for the browser and for anything that genuinely needs it. But it is no longer the default tool for navigating the desktop. That shift alone made the whole setup feel faster, not because the computer got faster, but because there is less switching between input devices.
+
+### The Dotfiles
+
+All of my config lives in a public repo. If you want to see the full setup or use any part of it as a starting point, it is at [github.com/xyzprtk/dotfiles](https://github.com/xyzprtk/dotfiles).
+
+The repo includes the full `hyprland.conf`, the Waybar config, the Wofi config, and the rest of the tools in the setup. Everything is organized by app, so you can take just the piece you need without having to dig through everything else.
+
+### Is It Worth the Setup Time
+
+Honest answer: yes, but only if you are willing to spend a few days getting it right.
+
+The first day is rough. Things will not work the way you expect. Some app will not tile properly. The bar will not show up. Something will open on the wrong workspace. These are all solvable problems, and solving them teaches you how the system works. By the end of the first week, you will have a setup that fits exactly how you work. Not how someone else decided you should work.
+
+GNOME is a finished product. Hyprland is a building material. If you are happy with a finished product, stay on GNOME. If you want to build something that is exactly yours, Hyprland is worth the time.
+
+I switched from Ubuntu to Fedora because Fedora was cleaner. I switched from GNOME to Hyprland because I wanted control. Both switches took some adjustment. Both were worth it.
+
+- **GitHub:** [github.com/xyzprtk](https://github.com/xyzprtk)
+- **Dotfiles:** [github.com/xyzprtk/dotfiles](https://github.com/xyzprtk/dotfiles)
+- **X (Twitter):** [x.com/xyzprtk](https://x.com/xyzprtk)
+- **Blog:** [prtx.xyz/blog](https://prtx.xyz/blog)
