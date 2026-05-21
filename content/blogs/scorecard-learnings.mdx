@@ -1,0 +1,153 @@
+---
+title: "What Building a Credit Risk Scorecard Taught Me as a Developer"
+date: "2026-05-24"
+description: "My learnings while building a credit risk scorecard using Python and Logistic Regression, and wrapping it in a full-stack web app."
+tags: ["Python", "Machine Learning", "Credit Risk", "FastAPI", "Next.js", "Finance"]
+---
+
+## The Data
+
+The dataset has 150,000 rows of borrower data. The target is `SeriousDlqin2yrs`, which is just a fancy way of saying "did this person go 90+ days late on a payment within two years." About 6.7% of people did. The rest were fine.
+
+The features are exactly what you would expect: age, income, how many kids they have, how much of their credit limit they are using, debt-to-income ratio, and how many times they have been late on payments.
+
+## Cleaning the Data
+
+I learned pretty quickly that in credit scoring, cleaning the data is most of the work. The model training itself takes less than a second. Everything before that is where you earn your money.
+
+**Missing values.** Monthly income was missing for about 20% of people. Number of dependents was missing for about 3%. I created binary flags to mark which rows had missing data, then filled the gaps with the median. Why median? Because the mean gets pulled around by rich people with crazy high incomes. The median stays put. Also, in production, people will still leave income blank on applications. You cannot just throw those away.
+
+**Duplicates.** There were 609 duplicate rows. I spent way too long analyzing them (checking if they had different targets, if they were repeated observations, all that stuff) before just dropping them. The bad rate barely moved, so it was fine.
+
+**Outliers.** This dataset is famous for having impossible numbers. The credit utilization ratio had a maximum of 50,708. That is not a ratio. That is a bug. Debt ratio had a max of 329,664. I capped both at the 99.9th percentile, which cut them down to about 10 and 5. That keeps the normal data intact while stopping the crazy values from ruining everything.
+
+## Binning and WoE
+
+In normal ML, you scale features with StandardScaler or MinMaxScaler. In credit scoring, you use something called Weight of Evidence (WoE).
+
+Here is the idea in plain English. You take a column like age and cut it into buckets. For each bucket, you count how many good customers are in it and how many bad ones. Then you take the log of that ratio. That number is the WoE for that bucket.
+
+What is nice about this is that outliers just fall into the edge buckets. Missing values get their own bucket. And the relationship between the feature and the target becomes linear, which Logistic Regression loves.
+
+I used a library called `optbinning` to find the best bucket boundaries automatically. It also makes sure the trend makes business sense. For example, as credit utilization goes up, the risk should go up too. The library enforces that.
+
+I calculated Information Value (IV) for every feature. Anything below 0.02 got cut. The strongest predictors were credit utilization, 90+ day late count, and 30-59 day late count. Ten features made the final model.
+
+## The Model
+
+After binning and converting to WoE, I trained the simplest model possible:
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+lr = LogisticRegression(max_iter=1000, solver="lbfgs", C=1.0)
+lr.fit(X_train, y_train)
+```
+
+That is it. No ensemble. No grid search. Just a straight line.
+
+And that is the whole point. A linear model means you can break the final score into pieces. You can literally tell someone, "You lost 12 points because of your late payments, but you gained 8 points because of your age." You cannot do that with XGBoost.
+
+## The Challenger
+
+Just to check, I also trained XGBoost on the raw features. It did beat the logistic model:
+
+- Logistic: AUC 0.859, KS 0.567
+- XGBoost: AUC 0.867, KS 0.582
+
+But the difference is tiny. In banking, a KS of 0.567 is already really good. And I would rather have a model I can explain to a regulator than one that is 1% better but a total black box. So Logistic Regression stayed as the main model.
+
+## The Bug That Broke Everything
+
+This part still annoys me.
+
+Credit scorecards convert log-odds into a human-readable score. You pick a Base Score, Base Odds, and PDO (Points to Double the Odds). The formula is simple:
+
+```
+Score = Offset - (Factor * LogOdds)
+```
+
+I picked Base Score = 385 and Base Odds = 1:19, which is about a 5% default rate. Then I clipped the output between 100 and 670 because that is what I wanted the UI to show.
+
+Big mistake.
+
+An average customer scored around 385, which was fine. But a good customer with a 1% default rate had log-odds around -4.6. Plug that in:
+
+```
+Score = 620 - (57.7 * -4.6) = 885
+```
+
+885. Way above my 670 ceiling. So `np.clip` smashed it down to 670. Almost every low-risk customer was scoring exactly 670. The distribution was completely wrecked.
+
+I only noticed this when I hooked up the FastAPI backend and started testing through the frontend. I would enter a perfectly normal customer and get 670. Every. Single. Time.
+
+The fix was to change the anchor point. I set Base Odds to 1:1 (a 50/50 chance of defaulting) and dropped Base Score to 250:
+
+```python
+BASE_SCORE = 250
+PDO = 40
+BASE_ODDS = 1 / 1
+
+FACTOR = PDO / np.log(2)
+OFFSET = BASE_SCORE - (FACTOR * np.log(BASE_ODDS))  # = 250
+```
+
+Since ln(1) = 0, the Offset is exactly 250. Now a 50% default rate maps to 250, and a good customer lands around 475. The 100-670 range actually fits the data now. On the training set, scores naturally fall between 108 and 542. No more ceiling problem.
+
+## The Backend
+
+I wanted people to actually use this, not just read a notebook. So I built a FastAPI backend.
+
+It has two endpoints:
+
+- `GET /health` - checks if the server is alive
+- `POST /predict` - takes in borrower data and returns the score
+
+The `/predict` endpoint runs the exact same preprocessing as training: fill missing values, cap outliers, convert to WoE, get the probability, convert to a score. It also returns a breakdown showing how many points each feature added or subtracted. That breakdown is what makes the frontend interesting.
+
+I used Pydantic to validate inputs, so if someone sends bad data, the API rejects it immediately with a clear error.
+
+## The Frontend
+
+A model nobody can play with is just a Python script. I built a Next.js frontend so anyone could enter numbers and see what happens.
+
+The predictor is a three-step wizard:
+
+1. Personal info (age, income, dependents)
+2. Credit profile (utilization, debt ratio, open lines)
+3. Payment history (late payment counts)
+
+You cannot skip ahead without filling required fields. On the last step, you hit "Get Score" and it sends everything to the backend.I also had to make the application responsive so it works on mobile.
+
+## Deployment
+
+I put the backend on Render and the frontend on Vercel. Both have free tiers that are plenty for a demo.
+
+- Render runs the FastAPI server from the `backend/` folder
+- Vercel builds the Next.js app from the `frontend/` folder
+- The frontend talks to the backend through an env variable called `BACKEND_URL`
+- CORS is locked down so only the frontend domain can call the API
+
+The only annoying thing is that Render's free tier goes to sleep after 15 minutes of no traffic. So the first request after a while takes like 30 seconds to wake up. Fine for a demo, annoying for anything real.
+
+## What I Learned
+
+A few things stuck with me from this project:
+
+**Explainability is not optional.** XGBoost was slightly more accurate, but nobody can explain why it made a decision. In finance, that matters more than 1% AUC.
+
+**Business rules are part of the model.** The 100-670 score range was not a statistics choice. It was a UI choice. But if your math does not fit inside that range, the whole thing breaks. I had to relearn the scaling formula three times before I got it.
+
+**The pipeline is the hard part.** Training the model takes a second. Cleaning the data, choosing bins, handling missing values, and getting the score math right took days.
+
+**Build the UI early.** I found the 670 ceiling bug within minutes of using the frontend. A notebook would have hidden that for way longer. Being able to actually interact with your model changes everything.
+
+## Links
+
+If you want to check out the code, the data pipeline, or try the app yourself:
+
+- **GitHub:** [github.com/xyzprtk/meridan](https://github.com/xyzprtk/meridan)
+- **X (Twitter):** [x.com/xyzprtk](https://x.com/xyzprtk)
+- **Blog:** [prtx.xyz/blog](https://prtx.xyz/blog)
+
+Thanks for reading.

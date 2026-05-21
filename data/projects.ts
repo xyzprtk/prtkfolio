@@ -9,14 +9,14 @@ export interface Project {
   }
   
   export const projects: Project[] = [
-    // {
-    //   title: "Amex Scorecard Modelling",
-    //   description: "A comprehensive credit risk model utilizing the AMEX dataset to predict default probabilities with high accuracy.",
-    //   image: "/projects/amex-scorecard.png",
-    //   techStack: ["Python", "XGBoost", "Pandas", "Scikit-learn"],
-    //   slug: "amex-scorecard", // matches content/projects/amex-scorecard.mdx
-    //   githubLink: "https://github.com/xyzprtk/amex-model"
-    // },
+    {
+      title: "Meridian - End to End Credit Risk Scorecard Apllication",
+      description: "A full-stack credit risk scorecard platform using Next.js and FastAPI that evaluates borrower risk through machine learning-driven scoring.",
+      image: "/projects/meridian.png",
+      techStack: ["Python", "XGBoost", "Pandas", "Scikit-learn","Machine Learning", "Credit Risk", "FastAPI", "Next.js", "Finance"],
+      slug: "credit-risk-scorecard", // matches content/projects/amex-scorecard.mdx
+      githubLink: "https://github.com/xyzprtk/meridan"
+    },
     {
       title: "Olist Customer Insights",
       description: "A comprehensive analysis of the Brazilian E-commerce Public Dataset using Python, Pandas, and RFM segmentation to uncover actionable customer behaviors.",

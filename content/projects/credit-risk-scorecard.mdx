@@ -1,0 +1,564 @@
+---
+title: "Credit Risk Scorecard"
+date: "2026-05-24"
+---
+
+## Overview
+
+This project is an end-to-end credit risk scorecard built on the Kaggle "Give Me Some Credit" dataset. It includes a complete machine learning pipeline for predicting the probability of default (PD), a FastAPI backend for serving predictions, and a Next.js frontend for interactive use.
+
+The core model uses Weight of Evidence (WoE) binning combined with Logistic Regression, which is the industry standard for credit scoring because it produces fully interpretable, point-based scores. An XGBoost challenger model was also trained for comparison.
+
+## Dataset
+
+The dataset contains 150,000 anonymized borrower records with the following features:
+
+| Feature | Description |
+|---------|-------------|
+| `SeriousDlqin2yrs` | Target: 1 if 90+ days past due within 2 years, else 0 |
+| `RevolvingUtilizationOfUnsecuredLines` | Total balance / credit limit ratio |
+| `age` | Borrower age in years |
+| `NumberOfTime30-59DaysPastDueNotWorse` | Count of 30-59 day late payments |
+| `DebtRatio` | Monthly debt payments / monthly gross income |
+| `MonthlyIncome` | Monthly income in USD |
+| `NumberOfOpenCreditLinesAndLoans` | Number of open credit lines |
+| `NumberOfTimes90DaysLate` | Count of 90+ day late payments |
+| `NumberRealEstateLoansOrLines` | Number of real estate loans |
+| `NumberOfTime60-89DaysPastDueNotWorse` | Count of 60-89 day late payments |
+| `NumberOfDependents` | Number of dependents |
+
+The target variable is highly imbalanced, with a default rate of approximately 6.7%.
+
+## Data Preprocessing Pipeline
+
+### 1. Missing Value Treatment
+
+Two columns contained missing values: `MonthlyIncome` (~20% missing) and `NumberOfDependents` (~3% missing). Rather than dropping rows or using mean imputation, the pipeline follows standard credit scoring practice:
+
+1. Create binary missing flags to preserve the signal that missingness itself may be predictive.
+2. Impute missing values with the training median, which is robust to outliers.
+
+```python
+import pandas as pd
+
+# Create missing flags
+df["MonthlyIncome_Missing_Flag"] = df["MonthlyIncome"].isnull().astype(int)
+df["NumberOfDependents_Missing_Flag"] = df["NumberOfDependents"].isnull().astype(int)
+
+# Median imputation
+train_med_income = df["MonthlyIncome"].median()
+train_med_dependents = df["NumberOfDependents"].median()
+
+df["MonthlyIncome"] = df["MonthlyIncome"].fillna(train_med_income)
+df["NumberOfDependents"] = df["NumberOfDependents"].fillna(train_med_dependents)
+```
+
+Mean imputation was avoided because income distributions are right-skewed (high earners pull the mean up), which would distort the WoE bins. Dropping rows was not an option because 20% of 150,000 records represents significant signal loss, and in production, applicants will still submit incomplete applications.
+
+### 2. Duplicate Removal
+
+The dataset contained 609 exact duplicates. Before removal, the duplicate structure was analyzed to check for:
+
+- Exact duplicates (same features + same target)
+- Conflicting duplicates (same features + different targets)
+- Repeated observations
+
+Analysis confirmed all duplicates were exact matches with no conflicting targets. After dropping them, the dataset reduced to 149,391 rows with the bad rate stable at 6.7%.
+
+```python
+# Check duplicate count before removal
+df.duplicated().sum()  # 609
+
+# Drop exact duplicates
+df = df.drop_duplicates()
+
+# Verify
+df.duplicated().sum()  # 0
+df.shape  # (149391, 13)
+```
+
+### 3. Outlier Capping
+
+Two features contained extreme outliers that would distort the binning process:
+
+- `RevolvingUtilizationOfUnsecuredLines`: max = 50,708 (impossible for a ratio)
+- `DebtRatio`: max = 329,664 (impossible for a ratio)
+
+Both were capped at the 99.9th percentile:
+
+```python
+# Cap at 99.9th percentile
+train_util_cap = df["RevolvingUtilizationOfUnsecuredLines"].quantile(0.999)
+train_debt_cap = df["DebtRatio"].quantile(0.999)
+
+df["RevolvingUtilizationOfUnsecuredLines"] = df["RevolvingUtilizationOfUnsecuredLines"].clip(upper=train_util_cap)
+df["DebtRatio"] = df["DebtRatio"].clip(upper=train_debt_cap)
+```
+
+This preserves the bulk of the distribution while preventing edge cases from creating artificial bins.
+
+## Feature Engineering: Weight of Evidence (WoE)
+
+Credit scorecards do not feed raw numeric features directly into the model. Instead, continuous variables are binned, and each bin is assigned a Weight of Evidence (WoE) value.
+
+### WoE Formula
+
+For a given bin:
+
+```
+WoE = ln( (% of Good customers in bin) / (% of Bad customers in bin) )
+```
+
+Where Good = did not default, Bad = defaulted.
+
+### Why WoE?
+
+1. **Outlier handling**: Extreme values fall into edge bins rather than skewing the model.
+2. **Missing value handling**: Missing values get their own bin with a computed WoE.
+3. **Linearization**: WoE transforms non-linear relationships into linear ones, which Logistic Regression can model effectively.
+4. **Interpretability**: Each bin has a clear meaning (e.g., "ages 25-35"), and the point contribution is transparent.
+
+### Optimal Binning
+
+Instead of arbitrary bucket boundaries (like `pd.cut` or `pd.qcut`), the `optbinning` library uses Mixed Integer Programming to find the optimal splits while enforcing monotonicity constraints.
+
+```python
+from optbinning import OptimalBinning
+import pandas as pd
+
+features = [
+    "RevolvingUtilizationOfUnsecuredLines",
+    "age",
+    "NumberOfTime30-59DaysPastDueNotWorse",
+    "DebtRatio",
+    "MonthlyIncome",
+    "NumberOfOpenCreditLinesAndLoans",
+    "NumberOfTimes90DaysLate",
+    "NumberRealEstateLoansOrLines",
+    "NumberOfTime60-89DaysPastDueNotWorse",
+    "NumberOfDependents",
+]
+
+target = "SeriousDlqin2yrs"
+
+binning_models = {}
+iv_scores = {}
+
+for feature in features:
+    optb = OptimalBinning(
+        name=feature,
+        dtype="numerical",
+        solver="mip",
+        monotonic_trend="auto"
+    )
+    optb.fit(df[feature], df[target])
+    
+    iv = optb.binning_table.iv
+    binning_models[feature] = optb
+    iv_scores[feature] = iv
+```
+
+The `monotonic_trend="auto"` parameter ensures that as a risk-increasing feature (like utilization) goes up, the WoE values trend in the same direction. This enforces business logic at the binning level.
+
+### Information Value (IV) and Variable Selection
+
+Information Value measures the predictive power of each feature. The industry standard thresholds are:
+
+| IV Range | Predictive Power |
+|----------|-----------------|
+| < 0.02 | Unpredictive |
+| 0.02 - 0.1 | Weak |
+| 0.1 - 0.3 | Medium |
+| 0.3 - 0.5 | Strong |
+| > 0.5 | Suspicious (may be overfitting) |
+
+All features with IV > 0.02 were retained. The final selected variables and their IV scores:
+
+| Variable | IV |
+|----------|-----|
+| RevolvingUtilizationOfUnsecuredLines | 1.116 |
+| NumberOfTimes90DaysLate | 0.837 |
+| NumberOfTime30-59DaysPastDueNotWorse | 0.738 |
+| NumberOfTime60-89DaysPastDueNotWorse | 0.571 |
+| age | 0.264 |
+| NumberOfOpenCreditLinesAndLoans | 0.089 |
+| MonthlyIncome | 0.078 |
+| DebtRatio | 0.077 |
+| NumberRealEstateLoansOrLines | 0.057 |
+| NumberOfDependents | 0.033 |
+
+Ten variables passed the threshold and were used in the final model.
+
+### WoE Transformation
+
+After fitting the binning models, the raw features were transformed into WoE values:
+
+```python
+X_woe = pd.DataFrame()
+for var in selected_vars:
+    optb = binning_models[var]
+    X_woe[f"woe_{var}"] = optb.transform(df[var], metric="woe")
+
+X_woe = X_woe.fillna(0)
+```
+
+## Model Training
+
+### Logistic Regression (Champion Model)
+
+The WoE-transformed features were split into train and test sets (70/30, stratified), then fed into a standard Logistic Regression:
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_woe, y, test_size=0.30, random_state=42, stratify=y
+)
+
+lr = LogisticRegression(max_iter=1000, solver="lbfgs", C=1.0)
+lr.fit(X_train, y_train)
+```
+
+No regularization tuning, no ensemble, no feature selection beyond the IV threshold. The model is intentionally simple because the interpretability requirement is non-negotiable.
+
+### Model Evaluation
+
+| Metric | Value |
+|--------|-------|
+| AUC | 0.859 |
+| Gini | 0.719 |
+| KS Statistic | 0.567 |
+
+A KS statistic of 0.567 indicates strong separation between the cumulative distributions of good and bad borrowers. In retail credit scoring, anything above 0.40 is considered acceptable, and above 0.50 is strong.
+
+### XGBoost Challenger Model
+
+An XGBoost model was trained on the original raw features (not WoE) to benchmark the scorecard:
+
+```python
+import xgboost as xgb
+
+xgb_model = xgb.XGBClassifier(
+    max_depth=4,
+    learning_rate=0.05,
+    n_estimators=200,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    objective="binary:logistic",
+    eval_metric="auc",
+    random_state=42,
+)
+
+xgb_model.fit(X_train_xgb, y_train_xgb)
+```
+
+| Metric | Logistic Scorecard | XGBoost Challenger |
+|--------|-------------------|-------------------|
+| AUC | 0.859 | 0.867 |
+| Gini | 0.719 | 0.734 |
+| KS | 0.567 | 0.582 |
+
+XGBoost marginally outperformed the logistic model, but the improvement was not sufficient to justify losing the point-based interpretability. Logistic Regression remained the champion model.
+
+## Score Scaling
+
+### The Standard Scorecard Formula
+
+Logistic Regression outputs log-odds, which are not human-readable. Scorecards convert them to a familiar credit score format using three parameters:
+
+- **Base Score**: The score assigned to the Base Odds
+- **Base Odds**: The odds of default that correspond to the Base Score
+- **PDO (Points to Double the Odds)**: How many points the score increases when odds halve
+
+The formulas are:
+
+```python
+import numpy as np
+
+FACTOR = PDO / np.log(2)
+OFFSET = BASE_SCORE - (FACTOR * np.log(BASE_ODDS))
+
+# Score calculation
+raw_score = OFFSET - (FACTOR * log_odds)
+score = np.clip(raw_score, 100, 670).round(0).astype(int)
+```
+
+### Initial Configuration and the Ceiling Bug
+
+The first attempt used:
+
+```python
+BASE_SCORE = 385
+PDO = 40
+BASE_ODDS = 1 / 19  # ~5.26% default rate
+```
+
+This anchored the population average (~6.7% default rate) near the middle of the scale. However, it caused a critical bug: low-risk customers (1% default rate) generated raw scores around 885, which were clipped to 670. The result was a pile-up at the ceiling, destroying the score distribution.
+
+### Fix: Shifting the Anchor
+
+The Base Odds were changed to 1:1 (50% default probability) and Base Score lowered to 250:
+
+```python
+BASE_SCORE = 250
+PDO = 40
+BASE_ODDS = 1 / 1  # 50/50 odds
+
+FACTOR = PDO / np.log(2)          # 57.7078
+OFFSET = BASE_SCORE - (FACTOR * np.log(BASE_ODDS))  # 250.0 exactly
+```
+
+Since ln(1) = 0, the Offset is exactly 250. Now a 50% default rate maps to score 250, and a good customer (2% PD) maps to around 475. The score distribution on the full training data became:
+
+| Statistic | Value |
+|-----------|-------|
+| Min | 107.8 |
+| Max | 542.1 |
+| Mean | 440.8 |
+| Median | 459.5 |
+| 90th percentile | 511.7 |
+| 99th percentile | 528.3 |
+
+The 100-670 range is now a natural envelope rather than a hard ceiling.
+
+### Risk Categories
+
+The score range was divided into five risk tiers:
+
+| Score Range | Category |
+|-------------|----------|
+| >= 500 | Very Low Risk |
+| >= 460 | Low Risk |
+| >= 420 | Medium Risk |
+| >= 380 | High Risk |
+| < 380 | Very High Risk |
+
+These thresholds were chosen to align with the actual score distribution after the anchor fix.
+
+## Model Artifacts
+
+The training pipeline exports a single pickle file containing everything the backend needs:
+
+```python
+import pickle
+
+artifacts = {
+    "binning_models": binning_models,        # Dict of OptimalBinning objects
+    "lr_model": lr,                          # Trained LogisticRegression
+    "selected_vars": selected_vars,          # List of feature names
+    "scorecard_table": scorecard_table,      # Per-bin points table
+    "preprocessing": {
+        "train_med_income": float(train_med_income),
+        "train_med_dependents": float(train_med_dependents),
+        "train_util_cap": float(train_util_cap),
+        "train_debt_cap": float(train_debt_cap),
+    },
+    "scorecard_params": {
+        "BASE_SCORE": float(BASE_SCORE),
+        "PDO": float(PDO),
+        "BASE_ODDS": float(BASE_ODDS),
+        "FACTOR": float(FACTOR),
+        "OFFSET": float(OFFSET),
+    },
+}
+
+with open("artifacts/scorecard_artifacts.pkl", "wb") as f:
+    pickle.dump(artifacts, f)
+```
+
+## Backend: FastAPI
+
+The backend is a FastAPI application that loads the artifacts and serves predictions via two endpoints.
+
+### Endpoints
+
+- `GET /health`: Returns service status and model load state.
+- `POST /predict`: Accepts borrower features, runs the full preprocessing and scoring pipeline, and returns the result.
+
+### Preprocessing Mirror
+
+The backend replicates the exact preprocessing steps from training to avoid training/serving skew:
+
+```python
+def preprocess_input(data: PredictRequest) -> pd.DataFrame:
+    row = { ... }  # Map request fields to DataFrame
+    df = pd.DataFrame([row])
+    
+    # Missing flags
+    df["MonthlyIncome_Missing_Flag"] = df["MonthlyIncome"].isnull().astype(int)
+    df["NumberOfDependents_Missing_Flag"] = df["NumberOfDependents"].isnull().astype(int)
+    
+    # Median imputation using training medians
+    df["MonthlyIncome"] = df["MonthlyIncome"].fillna(preproc["train_med_income"])
+    df["NumberOfDependents"] = df["NumberOfDependents"].fillna(preproc["train_med_dependents"])
+    
+    # Capping using training caps
+    df["RevolvingUtilizationOfUnsecuredLines"] = df["RevolvingUtilizationOfUnsecuredLines"].clip(upper=preproc["train_util_cap"])
+    df["DebtRatio"] = df["DebtRatio"].clip(upper=preproc["train_debt_cap"])
+    
+    return df
+```
+
+### Prediction Flow
+
+```python
+@app.post("/predict", response_model=PredictResponse)
+def predict(data: PredictRequest):
+    # 1. Preprocess
+    df = preprocess_input(data)
+    
+    # 2. WoE transform
+    X_woe = pd.DataFrame()
+    for var in selected_vars:
+        woe_values = binning_models[var].transform(df[var], metric="woe")
+        X_woe[f"woe_{var}"] = woe_values
+    X_woe = X_woe.fillna(0)
+    
+    # 3. Predict probability and log-odds
+    prob = float(lr_model.predict_proba(X_woe)[0, 1])
+    log_odds = float(
+        lr_model.predict_log_proba(X_woe)[0, 1]
+        - lr_model.predict_log_proba(X_woe)[0, 0]
+    )
+    
+    # 4. Convert to score
+    raw_score = params["OFFSET"] - (params["FACTOR"] * log_odds)
+    score = int(np.clip(raw_score, 100, 670).round(0))
+    
+    # 5. Build per-feature breakdown
+    breakdown = []
+    for i, var in enumerate(selected_vars):
+        optb = binning_models[var]
+        value = float(df[var].iloc[0])
+        bin_str = optb.transform(df[var], metric="bins")[0]
+        
+        # Look up points from scorecard table
+        match = scorecard_table[
+            (scorecard_table["Variable"] == var) & (scorecard_table["Bin"] == bin_str)
+        ]
+        
+        if match.empty:
+            woe_val = float(optb.transform(df[var], metric="woe")[0])
+            coef = float(lr_model.coef_[0][i])
+            pts = -(params["FACTOR"] * woe_val * coef)
+        else:
+            pts = float(match["Points"].iloc[0])
+        
+        breakdown.append({
+            "variable": var,
+            "value": value,
+            "bin": str(bin_str),
+            "points": round(pts, 2),
+            "contribution_pct": 0.0,
+        })
+    
+    # Normalize contributions
+    max_abs = max(abs(b["points"]) for b in breakdown)
+    for b in breakdown:
+        b["contribution_pct"] = round((abs(b["points"]) / max_abs) * 100, 1)
+    
+    risk_category, risk_color = get_risk_category(score)
+    
+    return PredictResponse(
+        score=score,
+        probability=round(prob, 4),
+        risk_category=risk_category,
+        risk_color=risk_color,
+        breakdown=breakdown,
+        base_score=params["BASE_SCORE"],
+        total_points=round(total_points, 2),
+    )
+```
+
+### Per-Feature Breakdown
+
+The most important feature of the backend is the per-factor breakdown. For each input variable, the backend determines which WoE bin the value falls into, looks up the corresponding point contribution from the scorecard table, and returns it. This makes the model fully transparent.
+
+Pydantic schemas enforce strict input validation. Required fields must be present and numeric. Optional fields can be omitted or sent as null.
+
+## Frontend: Next.js
+
+The frontend is a Next.js 16 application built with TypeScript, Tailwind CSS v4, and shadcn/ui. It provides an interactive interface for the scorecard.
+
+### Pages
+
+- **Landing page**: Explains the project, shows the pipeline steps, and provides a preview of what the results look like.
+- **Predictor page**: Contains the wizard form and results card.
+
+### Wizard Form
+
+The predictor uses a three-step wizard:
+
+1. Personal Information: age, monthly income, dependents
+2. Credit Profile: utilization ratio, debt ratio, open lines, real estate loans
+3. Payment History: counts of 30-59, 60-89, and 90+ day late payments
+
+Each step validates required fields before allowing progression. The form submits to a Next.js API route (`/api/predict`) which proxies the request to the FastAPI backend.
+
+### Results Card
+
+The results display includes:
+
+- Risk category badge with color coding
+- Default probability
+- Linear progress bar
+- Per-factor breakdown with contribution bars
+- Summary metrics grid (Final Score, Base Score, Total Points, Default Probability)
+
+### Design and Responsiveness
+
+The UI uses a charcoal base with mint and coral accents. Dark mode is supported via a toggle with localStorage persistence. The entire interface is responsive, with layout adjustments for mobile screens including stacked buttons, reflowed cards, and scaled typography.
+
+## Deployment
+
+The application is deployed on two platforms:
+
+- **Backend (Render)**: Runs the FastAPI server from the `backend/` directory. Build command installs dependencies from `requirements.txt`. Start command launches Uvicorn.
+- **Frontend (Vercel)**: Builds the Next.js app from the `frontend/` directory. Uses a `BACKEND_URL` environment variable to proxy API requests to the Render instance.
+
+CORS is restricted via a `CORS_ORIGINS` environment variable so only the frontend domain can access the API.
+
+## Repository Structure
+
+```
+.
+├── backend/
+│   ├── train_model.py              # Training pipeline
+│   ├── main.py                     # FastAPI server
+│   ├── artifacts/
+│   │   └── scorecard_artifacts.pkl # Serialized model
+│   └── requirements.txt
+├── frontend/
+│   ├── app/                        # Next.js app router
+│   │   ├── page.tsx                # Landing page
+│   │   ├── predict/page.tsx        # Predictor page
+│   │   ├── layout.tsx              # Root layout with navbar
+│   │   └── api/predict/route.ts    # API proxy route
+│   ├── components/
+│   │   ├── wizard-form.tsx         # Multi-step form
+│   │   ├── result-card.tsx         # Results display
+│   │   ├── theme-provider.tsx      # Dark mode context
+│   │   └── theme-toggle.tsx        # Theme toggle button
+│   └── public/
+│       └── logo.svg
+├── Data/
+│   ├── cs-training.csv
+│   └── cs-test.csv
+└── credit-risk-scorecard.ipynb     # Original exploration notebook
+```
+
+## Key Takeaways
+
+1. **Interpretability is a first-class requirement.** The WoE + Logistic Regression approach was chosen specifically because it produces additive, point-based scores that can be explained to regulators and customers.
+
+2. **The score scaling anchor matters.** An incorrectly chosen Base Score and Base Odds can destroy the score distribution by pushing values outside the intended range. The anchor must be chosen to fit the entire expected distribution.
+
+3. **Preprocessing is the product.** The actual model training takes less than one second. The data cleaning, binning, missing value handling, and score scaling took orders of magnitude longer to get right.
+
+4. **Full-stack validation catches bugs faster.** The 670 ceiling bug was discovered within minutes of using the interactive frontend, whereas it would have remained hidden in a notebook for much longer.
+
+## Links
+
+- **GitHub:** [github.com/xyzprtk/meridian](https://github.com/xyzprtk/meridian)
+- **Live Demo:** Deployed via Render + Vercel [meridian.prtx.xyz](https://meridian.prtx.xyz)
